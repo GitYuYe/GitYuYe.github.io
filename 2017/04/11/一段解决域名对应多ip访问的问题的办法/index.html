@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="PHP," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="一段解决域名对应多ip访问的问题的办法 PHP获取远程网页内容有多种方式，例如用自带的file_get_contents、fopen等函数。引用 123&amp;lt;?php   echo file_get_contents(&amp;quot;http://demo56.com/demo.php&amp;quot;);   ?&amp;gt; 　　但是，在DNS轮询等负载均衡中，同一域名，可能对应多台服务器，多个IP。假设d">
+<meta name="keywords" content="PHP">
+<meta property="og:type" content="article">
+<meta property="og:title" content="一段解决域名对应多ip访问的问题的办法">
+<meta property="og:url" content="http://gityuanye.cn/2017/04/11/一段解决域名对应多ip访问的问题的办法/index.html">
+<meta property="og:site_name" content="Lao Yuan&#39;s Personal Website">
+<meta property="og:description" content="一段解决域名对应多ip访问的问题的办法 PHP获取远程网页内容有多种方式，例如用自带的file_get_contents、fopen等函数。引用 123&amp;lt;?php   echo file_get_contents(&amp;quot;http://demo56.com/demo.php&amp;quot;);   ?&amp;gt; 　　但是，在DNS轮询等负载均衡中，同一域名，可能对应多台服务器，多个IP。假设d">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-06-12T07:26:01.390Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="一段解决域名对应多ip访问的问题的办法">
+<meta name="twitter:description" content="一段解决域名对应多ip访问的问题的办法 PHP获取远程网页内容有多种方式，例如用自带的file_get_contents、fopen等函数。引用 123&amp;lt;?php   echo file_get_contents(&amp;quot;http://demo56.com/demo.php&amp;quot;);   ?&amp;gt; 　　但是，在DNS轮询等负载均衡中，同一域名，可能对应多台服务器，多个IP。假设d">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://gityuanye.cn/2017/04/11/一段解决域名对应多ip访问的问题的办法/"/>
+
+
+
+
+
+  <title>一段解决域名对应多ip访问的问题的办法 | Lao Yuan's Personal Website</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Lao Yuan's Personal Website</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">LaoYuan</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://gityuanye.cn/2017/04/11/一段解决域名对应多ip访问的问题的办法/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Lao Yuan">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/upload/image/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lao Yuan's Personal Website">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">一段解决域名对应多ip访问的问题的办法</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-04-11T21:05:00+08:00">
+                2017-04-11
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/PHP/" itemprop="url" rel="index">
+                    <span itemprop="name">PHP</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>一段解决域名对应多ip访问的问题的办法</p>
+<p>PHP获取远程网页内容有多种方式，例如用自带的file_get_contents、fopen等函数。<br>引用</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php   </span><br><span class="line">echo file_get_contents(&quot;http://demo56.com/demo.php&quot;);   </span><br><span class="line">?&gt;</span><br></pre></td></tr></table></figure>
+<p>　　但是，在DNS轮询等负载均衡中，同一域名，可能对应多台服务器，多个IP。假设demo56.com被DNS解析到72.249.146.213、72.249.146.214、72.249.146.215三个IP，用户每次访问demo56.com，系统会根据负载均衡的相应算法访问其中的一台服务器。</p>
+<p>　　上周做一个视频项目时，就碰到这样一类需求：需要依次访问每台服务器上的一个PHP接口程序（假设为abc.php），查询这台服务器的传输状态。</p>
+<p>　　这时就不能直接用file_get_contents访问demo56.com/abc.php了，因为它可能一直重复访问某一台服务器。</p>
+<p>　　而采用依次访问<a href="http://72.249.146.213/abc.php%E3%80%81http://72.249.146.214/abc.php%E3%80%81http://72.249.146.215/abc.php%E7%9A%84%E6%96%B9%E6%B3%95%EF%BC%8C%E5%9C%A8%E8%BF%99%E4%B8%89%E5%8F%B0%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%B8%8A%E7%9A%84Web" target="_blank" rel="noopener">http://72.249.146.213/abc.php、http://72.249.146.214/abc.php、http://72.249.146.215/abc.php的方法，在这三台服务器上的Web</a> Server配有多个虚拟主机时，也是不行的。</p>
+<p>　　通过设置本地hosts也不行，因为hosts不能设置多个IP对应同一个域名。</p>
+<p>　　那就只有通过PHP和HTTP协议来实现：访问abc.php时，在header头中加上demo56.com域名。于是，我写了下面这个PHP函数</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php  </span><br><span class="line">/************************ </span><br><span class="line">* 函数用途：同一域名对应多个IP时，获取指定服务器的远程网页内容 </span><br><span class="line">* 参数说明： </span><br><span class="line">*    $ip   服务器的IP地址 </span><br><span class="line">*    $host   服务器的host名称 </span><br><span class="line">*    $url   服务器的URL地址（不含域名） </span><br><span class="line">* 返回值： </span><br><span class="line">*    获取到的远程网页内容 </span><br><span class="line">*    false   访问远程网页失败 </span><br><span class="line">************************/  </span><br><span class="line">function HttpVisit($ip, $host, $url)     </span><br><span class="line">&#123;     </span><br><span class="line">    $errstr = &apos;&apos;;     </span><br><span class="line">    $errno = &apos;&apos;;  </span><br><span class="line">    $fp = fsockopen ($ip, 80, $errno, $errstr, 90);  </span><br><span class="line">    if (!$fp)     </span><br><span class="line">    &#123;     </span><br><span class="line">         return false;     </span><br><span class="line">    &#125;     </span><br><span class="line">    else    </span><br><span class="line">    &#123;     </span><br><span class="line">        $out = &quot;GET &#123;$url&#125; HTTP/1.1\r\n&quot;;  </span><br><span class="line">        $out .= &quot;Host:&#123;$host&#125;\r\n&quot;;     </span><br><span class="line">        $out .= &quot;Connection: close\r\n\r\n&quot;;  </span><br><span class="line">        fputs ($fp, $out);     </span><br><span class="line">  </span><br><span class="line">        while($line = fread($fp, 4096))&#123;  </span><br><span class="line">           $response .= $line;  </span><br><span class="line">        &#125;  </span><br><span class="line">        fclose( $fp );  </span><br><span class="line">  </span><br><span class="line">        //去掉Header头信息  </span><br><span class="line">        $pos = strpos($response, &quot;\r\n\r\n&quot;);  </span><br><span class="line">        $response = substr($response, $pos + 4);  </span><br><span class="line">      </span><br><span class="line">        return $response;     </span><br><span class="line">    &#125;     </span><br><span class="line">&#125;  </span><br><span class="line">  </span><br><span class="line">//调用方法：  </span><br><span class="line">$server_info1 = HttpVisit(&quot;72.249.146.213&quot;, &quot;demo56.com&quot;, &quot;/abc.php&quot;);  </span><br><span class="line">$server_info2 = HttpVisit(&quot;72.249.146.214&quot;, &quot;demo56.com&quot;, &quot;/abc.php&quot;);  </span><br><span class="line">$server_info3 = HttpVisit(&quot;72.249.146.215&quot;, &quot;demo56.com&quot;, &quot;/abc.php&quot;);  </span><br><span class="line">?&gt;</span><br></pre></td></tr></table></figure>
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/PHP/" rel="tag"># PHP</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/03/17/抓取百度搜索页面的PHP代码示例/" rel="next" title="抓取百度搜索页面的PHP代码示例">
+                <i class="fa fa-chevron-left"></i> 抓取百度搜索页面的PHP代码示例
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/06/13/使用Redis实现购物车功能/" rel="prev" title="使用Redis实现购物车功能">
+                使用Redis实现购物车功能 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/upload/image/avatar.jpg"
+                alt="Lao Yuan" />
+            
+              <p class="site-author-name" itemprop="name">Lao Yuan</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">42</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                
+                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-name">分类</span>
+                
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Lao Yuan</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

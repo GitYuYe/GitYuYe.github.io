@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="MySQL," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="MySQL 锁定机制简介  ​ 各存储引擎使用三种类型锁定机制 行级锁定（row-level）表级锁定（table-level）页级锁定（page-leve） ： 页级锁定介于行级锁定与表级锁定之间。  MySQL数据库中 表级锁定主要是 MyISAM、Memory、CSV 等一些非事务性存储引擎，使用行级锁定主要是 InnoDB 存储引擎和 NDB Cluster 存储引擎，页级锁定主要是Be">
+<meta name="keywords" content="MySQL">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySQL 数据库锁定机制">
+<meta property="og:url" content="http://gityuanye.cn/2016/01/15/MySQL 数据库锁定机制/index.html">
+<meta property="og:site_name" content="Lao Yuan&#39;s Personal Website">
+<meta property="og:description" content="MySQL 锁定机制简介  ​ 各存储引擎使用三种类型锁定机制 行级锁定（row-level）表级锁定（table-level）页级锁定（page-leve） ： 页级锁定介于行级锁定与表级锁定之间。  MySQL数据库中 表级锁定主要是 MyISAM、Memory、CSV 等一些非事务性存储引擎，使用行级锁定主要是 InnoDB 存储引擎和 NDB Cluster 存储引擎，页级锁定主要是Be">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-06-12T07:20:31.176Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="MySQL 数据库锁定机制">
+<meta name="twitter:description" content="MySQL 锁定机制简介  ​ 各存储引擎使用三种类型锁定机制 行级锁定（row-level）表级锁定（table-level）页级锁定（page-leve） ： 页级锁定介于行级锁定与表级锁定之间。  MySQL数据库中 表级锁定主要是 MyISAM、Memory、CSV 等一些非事务性存储引擎，使用行级锁定主要是 InnoDB 存储引擎和 NDB Cluster 存储引擎，页级锁定主要是Be">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://gityuanye.cn/2016/01/15/MySQL 数据库锁定机制/"/>
+
+
+
+
+
+  <title>MySQL 数据库锁定机制 | Lao Yuan's Personal Website</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Lao Yuan's Personal Website</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">LaoYuan</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://gityuanye.cn/2016/01/15/MySQL 数据库锁定机制/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Lao Yuan">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/upload/image/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lao Yuan's Personal Website">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">MySQL 数据库锁定机制</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-01-15T20:15:00+08:00">
+                2016-01-15
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MySQL/" itemprop="url" rel="index">
+                    <span itemprop="name">MySQL</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <ol>
+<li>MySQL 锁定机制简介</li>
+</ol>
+<p>​ 各存储引擎使用三种类型锁定机制</p>
+<p>行级锁定（row-level）<br>表级锁定（table-level）<br>页级锁定（page-leve） ： 页级锁定介于行级锁定与表级锁定之间。</p>
+<ol start="2">
+<li>MySQL数据库中 表级锁定主要是 MyISAM、Memory、CSV 等一些非事务性存储引擎，使用行级锁定主要是 InnoDB 存储引擎和 NDB Cluster 存储引擎，页级锁定主要是BerkeleyDB存储引擎</li>
+</ol>
+<p>MyISAM 表级锁定主要分为两种类型<br>读锁定</p>
+<p>，一个新客户端在申请获取读锁定资源的时候，需要满足两个条件：</p>
+<p>请求锁定的资源当前没有被写锁定<br>写锁定等待队列 （Pending write-lock queue）中没有更高优先级的写锁定在等待<br>（只影响写操作）<br>写锁定</p>
+<p>（影响读操作，同时也影响写操作）</p>
+<ol start="4">
+<li>MySQL中主要分4中队列来维护这两种锁定：两个存放当前正在锁定的读和写锁定信息，另外两个存放等待中的读写锁定西信息，如下：</li>
+</ol>
+<p>Current read-lock queue ( lock-&gt;read)<br>Pending read-lock queue (lock-&gt;read_wait)<br>Current write-lock queue (lock-&gt;write)<br>Pending write-lock queue (lock-&gt;write_wait)<br>InnoDB 的行级锁定分为四种类型<br>共享锁 （有叫做：读锁）<br>允许一个事务去读一行，阻止其他事务获得相同数据的排它锁。<br>排他锁 （有叫做：写锁）<br>允许获得排它锁的事务更新数据，阻止其他事务<br>意向共享锁<br>意向排他锁</p>
+<ol start="6">
+<li>InnoDB 间隙锁</li>
+</ol>
+<p>​ InnoDB 的锁定是通过在指向数据记录的第一个索引键之前和最后一个索引键之后的空域空间标记锁定信息实现的。这种锁定方式被称为 “NEXT-KEY locking”（间隙锁）</p>
+<p>​ 间隙锁弱点：锁定一个范围之后，即使某些不存在的键值也会被无辜锁定，造成锁定的时候无法插入键值锁定内的任何数据。</p>
+<p>​ 通过索引实现锁定的方式存在其他几个较大的性能隐患：</p>
+<p>当 Query 无法利用索引的时候，InnoDB 会放弃使用 行级锁定 而改用 表级锁定 ，造成并发性能降低；<br>当 Query 使用的索引并不包含所有过滤条件时，数据检索使用到的索引键中的数据可能有部分不属于 Query 的结果集行列，但是也会被锁定，因为间隙锁锁定的是一个范围，而不是具体的索引键。<br>当 Query 在使用索引定位数据的时候，如果使用的索引键一样但访问的数据行不同 （索引只是过滤条件的一部分）， 他们一样会被锁定。<br>MyISAM 表锁优化建议<br>缩短锁定时间<br>尽量减少大的复杂 Query，将复杂 Query 拆分成几个小的 Query 执行。<br>尽可能地建立足够高效的索引，让数据检索更迅速。<br>尽量让MyISAM 存储引擎的表只存放必要的信息，控制字段类型。<br>利用合适的机会优化 MyISAM 表数据文件。<br>分离能并行的操作<br>MyISAM 并非只能完全的串行化，MyISAM 存储引擎还有一个特性 Concurrent Insert（并发插入）的特性。<br>MyISAM 存储引擎有一个控制是否打开 Concurrent insert 功能的参数选项： concurrent_insert 可以设置为 0/1/2：具体如下：<br>concurrent_insert = 2，无论 MyISAM 存储引擎的表数据文件的中间部分是否存在因为删除数据而留下的空闲空间，都允许在数据文件尾部进行Concurrent Insert。<br>concurrent_insert = 1，MyISAM 存储引擎表数据文件中间不存在空闲空间的时候，可以从文件尾部进行 Concurrent Insert。<br>concurrent_insert = 0， 无论 MyISAM 存储引擎的表数据文件的中间部分是否存在因为删除数据而留下的空闲空间，都不允许 Concurrent Insert。（读锁时，不允许插入）<br>合理利用读写优先级<br>表级锁定 默认情况下写优先级大于读，如果读操作多的时候，可以设置读优先级高，可设置参数 low_priority_updates = 1。</p>
+<ol start="8">
+<li>InnoDB 行锁优化建议</li>
+</ol>
+<p>尽可能让所有的数据检索都通过索引来完成，从而避免 InnoDB 因为无法通过索引键加锁而升级为表级锁定<br>合理设计索引，让 InnoDB 在索引键上加锁的时候尽可能准确，尽可能地缩小锁定范围，避免造成不必要的锁定而影响其他 Query 的执行。<br>尽可能减少基于范围的数据检索过滤条件，避免因间隙锁带来的负面影响而锁定了不该锁定的记录。<br>尽量控制事务大小，减少锁定的资源量和锁定的时间长度。<br>在业务环境允许的情况下，尽量使用较低级别的事务隔离，减少 MySQL 因为实现事务隔离级别所带来的附加成本。</p>
+<ol start="9">
+<li>系统锁定争用情况查询</li>
+</ol>
+<p>​ MySQL 内部有两组专用的状态变量记录系统内部资源争用情况。</p>
+<p>表级锁定的争用状态变量<br>​ mysql&gt; show status like ‘table%’;</p>
+<p>Table_locks_immediate：产生表级锁定的次数；<br>Table_locks_waited：出现表级锁定争用而发生等待的次数<br>​ Table_locks_immediate 值大于 Table_locks_waited 5000 是比较合适的，在大就需要分析问题所在。</p>
+<p>​ 两个状态值都是从系统启动后开始记录，每出现一次加1，如果这里 Table_locks_waited 状态值比较高，说明表级锁定争用严重，需进一步分析。</p>
+<p>InnoDB 行级锁定状态变量记录<br>​ sql&gt; show status like ‘innodb_row_lock%’;</p>
+<p>Innodb_row_lock_current_waites：当前正在等待锁定的数量；<br>Innodb_row_lock_time：从系统启动到现在锁定总时间长度；<br>Innodb_row_lock_time_avg：每次等待所花平均时间；<br>Innodb_row_lock_time_max：从系统启动到现在等待最长的一次所花的时间；<br>Innodb_row_lock_waits：从系统启动到现在总等待次数。<br>​ 5个状态，比较重要的是 Innodb_row_lock_time_avg（等待平均时长），Innodb_row_lock_waits（等待总次数）及 Innodb_row_lock_time（等待总时长）</p>
+<ol start="10">
+<li>InnoDB 除了提供以上5个系统状态变量外，还提供了更为丰富的即时状态信息，实现方法如下：</li>
+</ol>
+<p>创建 InnoDB Monitor 表来打开 InnoDB的 monitor 功能<br>mysql &gt; create table innodb_monitor(a int) engine=innodb;<br>然后执行 ”show innodb status” 查看详细信息<br>​ 为什么创建 innodb_monitor 表？</p>
+<p>​ 创建该表就是告诉InnoDB 我们要开始监控他的详细信息，然后InnoDB就会将比较详细的事务级锁定信息记录到MySQL的 error log 中，以便后面做进一步分析。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/MySQL/" rel="tag"># MySQL</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/01/10/几种Javascript语法/" rel="next" title="几种Javascript语法">
+                <i class="fa fa-chevron-left"></i> 几种Javascript语法
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/01/20/XMLHttpRequest 2.0/" rel="prev" title="XMLHttpRequest 2.0">
+                XMLHttpRequest 2.0 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/upload/image/avatar.jpg"
+                alt="Lao Yuan" />
+            
+              <p class="site-author-name" itemprop="name">Lao Yuan</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">42</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                
+                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-name">分类</span>
+                
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Lao Yuan</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

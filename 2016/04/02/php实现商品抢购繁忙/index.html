@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="PHP," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="很多做电商开发的小伙伴会遇到这个需求。  譬如我们要做一个 商品限时秒杀的功能。 其实如果你的网站很有流量，那么很多用户在几秒内同时点你的商品，确实会出现“抢购人数太多，请排队”。  但是呢，大部分网站然而并没有这么牛叉。为了让用户感受到商品很抢手，动不动就提示”系统繁忙“的效果，我们需要做一个程序来”假装很繁忙“。 （除了淘宝，大家不要以为其他网站真的很繁忙哦，只不过人家是故意让你觉得不抢就买不">
+<meta name="keywords" content="PHP">
+<meta property="og:type" content="article">
+<meta property="og:title" content="PHP实现假装商品抢购繁忙的效果">
+<meta property="og:url" content="http://gityuanye.cn/2016/04/02/php实现商品抢购繁忙/index.html">
+<meta property="og:site_name" content="Lao Yuan&#39;s Personal Website">
+<meta property="og:description" content="很多做电商开发的小伙伴会遇到这个需求。  譬如我们要做一个 商品限时秒杀的功能。 其实如果你的网站很有流量，那么很多用户在几秒内同时点你的商品，确实会出现“抢购人数太多，请排队”。  但是呢，大部分网站然而并没有这么牛叉。为了让用户感受到商品很抢手，动不动就提示”系统繁忙“的效果，我们需要做一个程序来”假装很繁忙“。 （除了淘宝，大家不要以为其他网站真的很繁忙哦，只不过人家是故意让你觉得不抢就买不">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-06-12T06:51:25.033Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="PHP实现假装商品抢购繁忙的效果">
+<meta name="twitter:description" content="很多做电商开发的小伙伴会遇到这个需求。  譬如我们要做一个 商品限时秒杀的功能。 其实如果你的网站很有流量，那么很多用户在几秒内同时点你的商品，确实会出现“抢购人数太多，请排队”。  但是呢，大部分网站然而并没有这么牛叉。为了让用户感受到商品很抢手，动不动就提示”系统繁忙“的效果，我们需要做一个程序来”假装很繁忙“。 （除了淘宝，大家不要以为其他网站真的很繁忙哦，只不过人家是故意让你觉得不抢就买不">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://gityuanye.cn/2016/04/02/php实现商品抢购繁忙/"/>
+
+
+
+
+
+  <title>PHP实现假装商品抢购繁忙的效果 | Lao Yuan's Personal Website</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Lao Yuan's Personal Website</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">LaoYuan</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://gityuanye.cn/2016/04/02/php实现商品抢购繁忙/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Lao Yuan">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/upload/image/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lao Yuan's Personal Website">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">PHP实现假装商品抢购繁忙的效果</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-04-02T09:10:00+08:00">
+                2016-04-02
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/PHP/" itemprop="url" rel="index">
+                    <span itemprop="name">PHP</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>很多做电商开发的小伙伴会遇到这个需求。</strong></p>
+<p> 譬如我们要做一个 商品限时秒杀的功能。 其实如果你的网站很有流量，那么很多用户在几秒内同时点你的商品，确实会出现“抢购人数太多，请排队”。</p>
+<p> 但是呢，大部分网站然而并没有这么牛叉。为了让用户感受到商品很抢手，动不动就提示”系统繁忙“的效果，我们需要做一个程序来”假装很繁忙“。 （除了淘宝，大家不要以为其他网站真的很繁忙哦，只不过人家是故意让你觉得不抢就买不到，求懂）</p>
+<p><strong>本文来设定一个规则，大家可以根据我的思路扩展即可。</strong><br> 1、商品购买链接，每个人都可以点。<br> 2、我们要让用户有70%的可能性出现“排队中，商品繁忙”</p>
+<p> 本文用 php代码实现。其他语言一样，改改。</p>
+<p><strong>首先我们用小学学到的知识想一下：</strong><br> 1、 如果有10个球，其中3个红球，7个篮球。放在袋子里。随便胡乱的混合一下，让你用手伸进去摸，那么摸到篮球的几率是多少？显然，是70%</p>
+<p><strong>之前我把这个需求给了一个小伙伴看。他给出的答案如下：</strong><br> $arr=array(“red”,”red”,”red”,”blue”,”blue”,”blue”,”blue”,”blue”,”blue”,”blue”);<br> 然后 echo $arr[rand(0,9)];<br> 然后告诉我，他两句话就搞定了。</p>
+<p><strong>这个做法其实已经蛮聪明了。但是这位小伙伴忽略了很重要的一点</strong></p>
+<p>2、如果第二个人来摸呢？ 这里有个注意点，如果第二个人来摸，那么必定要把这10个球补满（依然是3个红球，7个篮球）<br>然后最重要的，<strong>还要继续“胡乱的、随便的”混合一下</strong>。这样，第二个人来摸到篮球的几率才会依然是70%.</p>
+<p> 上面的程序明显忽略了：继续“胡乱的、随便的”混合一下。 如果每个人都按这个 前三个红后七个蓝 来摸球。那么php的rand函数不能保证篮球是70%。</p>
+<p> 说到这，很多大神要拿出各种高级算法，譬如啥贝叶斯、矩阵之类的字眼出来。如果这么一个电商功能要用这么复杂的运算，我相信你的老板不会同意你花这么多时间来完成这个功能吧。</p>
+<p><strong>接下来，我放出一种简单，但也不失精准性的算法。我们的目标是：使用php的简单函数，尽可能的让摸到篮球的几率接近于70%。</strong></p>
+<p><strong>第一步：</strong> $arr=array(“red”,”red”,”red”,”blue”,”blue”,”blue”,”blue”,”blue”,”blue”,”blue”); 这个东西要有，这就是初始化的三个红球，7个篮球</p>
+<p><strong>第二步</strong>：随意的、胡乱的混合。<br> 上面一个数组有10个元素，我们可以采取随机两个球交换，交换多少次可以自己定<br> 先写个交换函数 (如果这个函数看不懂，就要恶补基础知识啦）<br>function swap($i,$j,$arr)<br> {<br> $tmp=$arr[$i];<br> $arr[$i]=$arr[$j];<br> $arr[$j]=$tmp;<br> return $arr;<br> }<br> 这个函数实现，我输入两个随便什么序号，实现对这个数组中符合该序号的求交换一下。</p>
+<p>本文出自于 <a href="http://www.hishenyi.com/" target="_blank" rel="noopener">沈逸的个人原创博客</a></p>
+<p><strong>第三步：优化交换算法。</strong><br>因为上面的交换函数，输入的随机参数导致，红球和红球交换，或者篮球和篮球交换。那么然而并没有实现“真正的”混合</p>
+<p>所以我们要写个补充函数，确保每次交换，都必须是红球和篮球进行随意交换</p>
+<p>function getRange($arr,$v)<br> {<br> $ret=array();<br> for($i=0;$i&lt;count($arr);$i++)<br> {<br> if($arr[$i]==$v)<br> {<br> $ret[]=$i;<br> }<br> }<br> return $ret[rand(0,count($ret)-1)];<br> }<br>这个函数的作用是：在10个球中找到 红球或篮球，然后分别取出他们目前所在的序号，然后利用rand函数随机取一个篮球或者红球的序号。</p>
+<p>本文出自于 <a href="http://www.hishenyi.com/" target="_blank" rel="noopener">沈逸的个人原创博客</a></p>
+<p><strong>诺看一下这里：</strong><br>$i=getRange($arr,”red”); //这样可以取出随机一个红球的序号<br>$j=getRange($arr,”blue”); //这样可以取出随机一个篮球的序号</p>
+<p><strong>第四步：比较重要。开始随意的、胡乱的混合</strong></p>
+<p> for($num=0;$num&lt;10;$num++) =”” {=”” $i=”getRange($arr,”red”);” $j=”getRange($arr,”blue”);” $arr=”swap($i,$j,$arr);” echo=”” implode(“,”,=”” $arr).”|”.$i.”|”.$j.””; //这个语句可以看一下输出，混合过后的排列，是否每次都不一样<br> }<br> 这里的注意点是，$num&lt;10 。代表我混合10次。 等于用你的大手到袋子里胡乱搅10次。 理论上搅的越多，随机性越强。这里其实10次足以。</p>
+<p> 第四步执行完成后出来的$arr 就是搅拌好的 红球和篮球的混合体。</p>
+<p><strong>第五步：再次调用 rand函数</strong></p>
+<p> echo $arr[rand(0,9)];</p>
+<p>如果出来的是内容是blue ，则直接exit(“老子很忙，别烦”)<br>如果是red，那么让程序继续执行购买程序吧。</p>
+<p>这个大家自己编写吧。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/PHP/" rel="tag"># PHP</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/21/PHP支持htaccess实现伪静态的注意事项/" rel="next" title="PHP支持htaccess实现伪静态的注意事项">
+                <i class="fa fa-chevron-left"></i> PHP支持htaccess实现伪静态的注意事项
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/04/17/php读取文件/" rel="prev" title="php读取文件">
+                php读取文件 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/upload/image/avatar.jpg"
+                alt="Lao Yuan" />
+            
+              <p class="site-author-name" itemprop="name">Lao Yuan</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">42</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                
+                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-name">分类</span>
+                
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Lao Yuan</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

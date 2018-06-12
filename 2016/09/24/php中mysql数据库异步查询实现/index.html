@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="PHP," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="问题通常一个web应用的性能瓶颈在数据库。因为，通常情况下php中mysql查询是串行的。也就是说，如果指定两条sql语句时，第二条sql语句会等到第一条sql语句执行完毕再去执行。这个时候，如果执行2条sql语句，每条执行时间为50ms，全部执行完毕可能需要100ms。既然，主要原因是sql的串行执行导致。那我们是不是可以改变执行方式来提高性能呢？答案是，可以的。我们可以通过异步执行的方式来提高">
+<meta name="keywords" content="PHP">
+<meta property="og:type" content="article">
+<meta property="og:title" content="php中mysql数据库异步查询实现">
+<meta property="og:url" content="http://gityuanye.cn/2016/09/24/php中mysql数据库异步查询实现/index.html">
+<meta property="og:site_name" content="Lao Yuan&#39;s Personal Website">
+<meta property="og:description" content="问题通常一个web应用的性能瓶颈在数据库。因为，通常情况下php中mysql查询是串行的。也就是说，如果指定两条sql语句时，第二条sql语句会等到第一条sql语句执行完毕再去执行。这个时候，如果执行2条sql语句，每条执行时间为50ms，全部执行完毕可能需要100ms。既然，主要原因是sql的串行执行导致。那我们是不是可以改变执行方式来提高性能呢？答案是，可以的。我们可以通过异步执行的方式来提高">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-06-12T07:13:34.269Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="php中mysql数据库异步查询实现">
+<meta name="twitter:description" content="问题通常一个web应用的性能瓶颈在数据库。因为，通常情况下php中mysql查询是串行的。也就是说，如果指定两条sql语句时，第二条sql语句会等到第一条sql语句执行完毕再去执行。这个时候，如果执行2条sql语句，每条执行时间为50ms，全部执行完毕可能需要100ms。既然，主要原因是sql的串行执行导致。那我们是不是可以改变执行方式来提高性能呢？答案是，可以的。我们可以通过异步执行的方式来提高">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://gityuanye.cn/2016/09/24/php中mysql数据库异步查询实现/"/>
+
+
+
+
+
+  <title>php中mysql数据库异步查询实现 | Lao Yuan's Personal Website</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Lao Yuan's Personal Website</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">LaoYuan</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://gityuanye.cn/2016/09/24/php中mysql数据库异步查询实现/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Lao Yuan">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/upload/image/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lao Yuan's Personal Website">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">php中mysql数据库异步查询实现</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-09-24T16:43:00+08:00">
+                2016-09-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/PHP/" itemprop="url" rel="index">
+                    <span itemprop="name">PHP</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h5 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h5><p>通常一个web应用的性能瓶颈在数据库。因为，通常情况下php中mysql查询是串行的。也就是说，如果指定两条sql语句时，第二条sql语句会等到第一条sql语句执行完毕再去执行。这个时候，如果执行2条sql语句，每条执行时间为50ms，全部执行完毕可能需要100ms。既然，主要原因是sql的串行执行导致。那我们是不是可以改变执行方式来提高性能呢？答案是，可以的。我们可以通过异步执行的方式来提高性能。</p>
+<h5 id="异步"><a href="#异步" class="headerlink" title="异步"></a>异步</h5><p>如果通过异步的方式去执行，可能性能会有很大提升。如果是采用异步的方式，两条sql语句会并发执行，可能就需要60ms就可以执行完毕。</p>
+<h5 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h5><p>mysqli + mysqlnd。php官方实现的mysqlnd中提供了异步查询的方法。分别是：<br>mysqlnd_async_query 发送查询请求<br>mysqlnd_reap_async_query 获取查询结果<br>这样就可以不必每次发送完查询请求后，一直阻塞等待查询结果了。</p>
+<p>实现代码如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">  </span><br><span class="line">$host       = &apos;127.0.0.1&apos;;</span><br><span class="line">$user       = &apos;root&apos;;</span><br><span class="line">$password   = &apos;&apos;;</span><br><span class="line">$database   = &apos;test&apos;;</span><br><span class="line">  </span><br><span class="line">/**</span><br><span class="line"> * 期望得到额结果</span><br><span class="line"> * array(</span><br><span class="line"> *  1 =&gt; int,</span><br><span class="line"> *  2 =&gt; int,</span><br><span class="line"> *  3 =&gt; int</span><br><span class="line"> * )</span><br><span class="line"> */</span><br><span class="line">$result = array(1=&gt;0, 2=&gt;0, 3=&gt;0);</span><br><span class="line">  </span><br><span class="line">//异步方式[并发请求]</span><br><span class="line">$time_start = microtime(true);</span><br><span class="line">$links = array();</span><br><span class="line">  </span><br><span class="line">foreach ($result as $key=&gt;$value) &#123;</span><br><span class="line">    $obj = new mysqli($host, $user, $password, $database);</span><br><span class="line">    $links[spl_object_hash($obj)] = array(&apos;value&apos;=&gt;$key, &apos;link&apos;=&gt;$obj);</span><br><span class="line">&#125;</span><br><span class="line">$done = 0;</span><br><span class="line">$total = count($links);</span><br><span class="line">  </span><br><span class="line">foreach ($links as $value) &#123;</span><br><span class="line">    $value[&apos;link&apos;]-&gt;query(&quot;SELECT COUNT(*) AS `total` FROM `demo` WHERE `value`=&#123;$value[&apos;value&apos;]&#125;&quot;, MYSQLI_ASYNC);</span><br><span class="line">&#125;</span><br><span class="line">  </span><br><span class="line">do &#123;</span><br><span class="line">  </span><br><span class="line">    $tmp = array();</span><br><span class="line">    foreach ($links as $value) &#123;</span><br><span class="line">        $tmp[] = $value[&apos;link&apos;];</span><br><span class="line">    &#125;</span><br><span class="line">  </span><br><span class="line">    $read = $errors = $reject = $tmp;</span><br><span class="line">    $re = mysqli_poll($read, $errors, $reject, 1);</span><br><span class="line">    if (false === $re) &#123;</span><br><span class="line">        die(&apos;mysqli_poll failed&apos;);</span><br><span class="line">    &#125; elseif ($re &lt; 1) &#123;</span><br><span class="line">        continue;</span><br><span class="line">    &#125;</span><br><span class="line">  </span><br><span class="line">    foreach ($read as $link) &#123;</span><br><span class="line">        $sql_result = $link-&gt;reap_async_query();</span><br><span class="line">        if (is_object($sql_result)) &#123;</span><br><span class="line">            $sql_result_array = $sql_result-&gt;fetch_array(MYSQLI_ASSOC);//只有一行</span><br><span class="line">            $sql_result-&gt;free();</span><br><span class="line">            $hash = spl_object_hash($link);</span><br><span class="line">            $key_in_result = $links[$hash][&apos;value&apos;];</span><br><span class="line">            $result[$key_in_result] = $sql_result_array[&apos;total&apos;];</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            echo $link-&gt;error, &quot;\n&quot;;</span><br><span class="line">        &#125;</span><br><span class="line">        $done++;</span><br><span class="line">    &#125;</span><br><span class="line">  </span><br><span class="line">    foreach ($errors as $link) &#123;</span><br><span class="line">        echo $link-&gt;error, &quot;1\n&quot;;</span><br><span class="line">        $done++;</span><br><span class="line">    &#125;</span><br><span class="line">  </span><br><span class="line">    foreach ($reject as $link) &#123;</span><br><span class="line">        printf(&quot;server is busy, client was rejected.\n&quot;, $link-&gt;connect_error, $link-&gt;error);</span><br><span class="line">        //这个地方别再$done++了。</span><br><span class="line">    &#125;</span><br><span class="line">&#125; while ($done&lt;$total);</span><br><span class="line">var_dump($result);</span><br><span class="line">echo &quot;ASYNC_QUERY_TIME:&quot;, microtime(true)-$time_start, &quot;\n&quot;;</span><br><span class="line">  </span><br><span class="line">$link = end($links);</span><br><span class="line">$link = $link[&apos;link&apos;];</span><br><span class="line">echo &quot;\n&quot;;</span><br></pre></td></tr></table></figure>
+<h5 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h5><p>mysql数据库对于每个查询请求都是单独启动一个线程进行处理。如果mysql服务器启动线程过多，必然会造成线程切换引起系统负载过高。如果在mysql数据库负载不高的情况下，使用异步查询还是不错的选择。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/PHP/" rel="tag"># PHP</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/09/05/一次错误的排查/" rel="next" title="一次错误的排查">
+                <i class="fa fa-chevron-left"></i> 一次错误的排查
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/10/10/注意sql语句中的通配符，别掉坑里面!/" rel="prev" title="注意sql语句中的通配符，别掉坑里面!">
+                注意sql语句中的通配符，别掉坑里面! <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/upload/image/avatar.jpg"
+                alt="Lao Yuan" />
+            
+              <p class="site-author-name" itemprop="name">Lao Yuan</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">42</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                
+                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-name">分类</span>
+                
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-5"><a class="nav-link" href="#问题"><span class="nav-number">1.</span> <span class="nav-text">问题</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#异步"><span class="nav-number">2.</span> <span class="nav-text">异步</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#实现"><span class="nav-number">3.</span> <span class="nav-text">实现</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#结语"><span class="nav-number">4.</span> <span class="nav-text">结语</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Lao Yuan</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

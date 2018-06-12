@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="MySQL," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="Mysql MERGE引擎简介 一. 什么是MERGE引擎MERGE存储引擎把一组MyISAM数据表当做一个逻辑单元来对待，让我们可以同时对他们进行查询。 二. 应用场景如果需要把日志纪录不停的录入MySQL数据库，并且每天、每周或者每个月都创建一个单一的表，而且要时常进行来自多个表的合计查询，MERGE表这时会非常简单有效。 三. 举例假设有如下两表 123451 CREATE TABLE `t">
+<meta name="keywords" content="MySQL">
+<meta property="og:type" content="article">
+<meta property="og:title" content="merge引擎">
+<meta property="og:url" content="http://gityuanye.cn/2015/10/07/merge引擎/index.html">
+<meta property="og:site_name" content="Lao Yuan&#39;s Personal Website">
+<meta property="og:description" content="Mysql MERGE引擎简介 一. 什么是MERGE引擎MERGE存储引擎把一组MyISAM数据表当做一个逻辑单元来对待，让我们可以同时对他们进行查询。 二. 应用场景如果需要把日志纪录不停的录入MySQL数据库，并且每天、每周或者每个月都创建一个单一的表，而且要时常进行来自多个表的合计查询，MERGE表这时会非常简单有效。 三. 举例假设有如下两表 123451 CREATE TABLE `t">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-06-12T06:22:56.671Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="merge引擎">
+<meta name="twitter:description" content="Mysql MERGE引擎简介 一. 什么是MERGE引擎MERGE存储引擎把一组MyISAM数据表当做一个逻辑单元来对待，让我们可以同时对他们进行查询。 二. 应用场景如果需要把日志纪录不停的录入MySQL数据库，并且每天、每周或者每个月都创建一个单一的表，而且要时常进行来自多个表的合计查询，MERGE表这时会非常简单有效。 三. 举例假设有如下两表 123451 CREATE TABLE `t">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://gityuanye.cn/2015/10/07/merge引擎/"/>
+
+
+
+
+
+  <title>merge引擎 | Lao Yuan's Personal Website</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Lao Yuan's Personal Website</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">LaoYuan</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://gityuanye.cn/2015/10/07/merge引擎/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Lao Yuan">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/upload/image/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lao Yuan's Personal Website">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">merge引擎</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2015-10-07T18:00:00+08:00">
+                2015-10-07
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MySQL/" itemprop="url" rel="index">
+                    <span itemprop="name">MySQL</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><a href="http://www.cnblogs.com/luojianqun/p/4903743.html" target="_blank" rel="noopener">Mysql MERGE引擎简介</a></p>
+<p>一. 什么是MERGE<strong>引擎</strong>MERGE存储引擎把一组MyISAM数据表当做一个逻辑单元来对待，让我们可以同时对他们进行查询。</p>
+<p><strong>二. 应用场景</strong>如果需要把日志纪录不停的录入MySQL数据库，并且每天、每周或者每个月都创建一个单一的表，而且要时常进行来自多个表的合计查询，MERGE表这时会非常简单有效。</p>
+<p><strong>三. 举例</strong>假设有如下两表</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">1 CREATE TABLE `t1` (   </span><br><span class="line">2 `id` int(10) unsigned NOT NULL AUTO_INCREMENT,   </span><br><span class="line">3 `log` varchar(45) ,   </span><br><span class="line">4 PRIMARY KEY (`id`) </span><br><span class="line">5 ) ENGINE=MyISAM;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">1 CREATE TABLE `t2`(   </span><br><span class="line">2 `id` int(10) unsigned NOT NULL AUTO_INCREMENT,   </span><br><span class="line">3 `log` varchar(45) ,   </span><br><span class="line">4 PRIMARY KEY (`id`) </span><br><span class="line">5 ) ENGINE=MyISAM;</span><br></pre></td></tr></table></figure>
+<p>假设t1，t2中都有如下记录</p>
+<p>+—-+——-+</p>
+<p>| id | log |</p>
+<p>+—-+——-+</p>
+<p>| 1 | test1 |</p>
+<p>| 2 | test2 |</p>
+<p>| 3 | test3 |</p>
+<p>+—-+——-+</p>
+<p>建立MERGE表</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">1 CREATE TABLE `t` (   </span><br><span class="line">2 `id` int(10) unsigned NOT NULL AUTO_INCREMENT,   </span><br><span class="line">3 `log` varchar(45) NOT NULL,   </span><br><span class="line">4 PRIMARY KEY (`id`) </span><br><span class="line">5 ) ENGINE=MERGE UNION=(t1, t2) INSERT_METHOD=LAST;</span><br></pre></td></tr></table></figure>
+<p>执行select * from t;将会得到如下结果<br>+—-+——-+<br>| id | log |<br>+—-+——-+<br>| 1 | test1 |<br>| 2 | test2 |<br>| 3 | test3 |<br>| 1 | test1 |<br>| 2 | test2 |<br>| 3 | test3|<br>+—-+——-+</p>
+<p>从效果上看，t1,t2的记录如同在一张表里一样被罗列了出来。当然，看了这个结果你一定会有一些疑问，在下一节里我们会慢慢解释。现在我们主要来解释一下上面MERGE表的建表语句。<br>1）ENGINE=MERGE<br>指明使用MERGE引擎，有些同学可能见到过ENGINE=MRG_MyISAM的例子，也是对的，它们是一回事。<br>2）UNION=(t1, t2)<br>指明了MERGE表中挂接了些哪表，可以通过alter table的方式修改UNION的值，以实现增删MERGE表子表的功能。<br>3）INSERT_METHOD=LAST<br>INSERT_METHOD指明插入方式，取值可以是：0 不允许插入；FIRST 插入到UNION中的第一个表； LAST 插入到UNION中的最后一个表。<br>4）MERGE表及构成MERGE数据表结构的各成员数据表必须具有完全一样的结构。每一个成员数据表的数据列必须按照同样的顺序定义同样的名字和类型，索引也必须按照同样的顺序和同样的方式定义。<br><strong>四. Cookie问答</strong>1）建表时UNION指明的子表如果存在相同主键的记录会怎么样？<br>相同主键的记录会同时存在于MERGE中，就像第三节中的例子所示。但如果继续向MERGE表中插入数据，若数据主键已存在则无法插入。换言之，MERGE表只对建表之后的操作负责。<br>2）若MREGE后存在重复主键，按主键查询会是什么结果？<br>顺序查询，只出现一条查询记录即停止。比如第三节中的例子，如果执行</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1 select * from t where id=1;</span><br></pre></td></tr></table></figure>
+<p>只会得到结果<br>+—-+——–+<br>| id | log |<br>+—-+——–+<br>| 1 | test1 |<br>+—-+——–+</p>
+<p>3）直接删除一个子表会出现什么情况，正确删除的方式是怎样的？<br>MERGE表会被破坏，正确方式是用alter table方式先将子表从MERGE表中去除，再删除子表。<br>以第三节中的例子为例，执行如下操作</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1 alter table t ENGINE=MRG_MyISAM UNION=(t1) INSERT_METHOD=LAST;</span><br></pre></td></tr></table></figure>
+<p>可以从MERGE表中去除t2，这里你可以安全的对t2进行任何操作了。</p>
+<p>4）误删子表时，如何恢复MERGE表？<br>误删子表时，MERGE表上将无法进行任何操作。<br>方法1，drop MERGE表，重建。重建时注意在UNION部分去掉误删的子表。<br>方法2，建立MERGE表时，会在数据库目录下生成一个.MRG文件，比如设表名为t，则文件名为t.MRG。<br>文件内容类似：<br>t1<br>t2<br>#INSERT_METHOD=LAST<br>指明了MGEGE表的子表构成及插入方式。<br>可以直接修改此文件，去掉误删表的表名。然后执行flush tables即可修复MERGE表。</p>
+<p>5）MERGE的子表中之前有记录，且有自增主键，则MERGE表创建后，向其插入记录时主键以什么规则自增？<br>以各表中的AUTO_INCREMENT最大值做为下一次插入记录的主键值。<br>比如t1的自增ID至6，t2至4，则创建MERGE表后，插入的下一条记录ID将会是7</p>
+<p>6）两个结构完全相同的但已存在数据的表，是否一定可以合成一个MEREGE表？<br>从实验的结果看，不是这样的，有时创建出的表，无法进行任何操作。<br>所以，推荐的使用方法是先有一个MERGE表，里面只包含一张表，当一个这个表的的大小增长到一定程度（比如200w）时，创建另一张空表，将其挂入MERGE表，然后继续插入记录。</p>
+<p>7）删除MERGE表是否会对子表产生影响？<br>不会</p>
+<p>8）MREGE表的子表的ENGIN是否有要求？<br>有的，必须是MyISAM表</p>
+<p>附:<br>官方给出的关于MERGE表存在的一些问题<br><a href="http://dev.mysql.com/doc/refman/5.1/zh/storage-engines.html#merge-table-problems" target="_blank" rel="noopener">http://dev.mysql.com/doc/refman/5.1/zh/storage-engines.html#merge-table-problems</a><br>如果需要把日志纪录不停的录入MySQL数据库，并且每天、每周或者每个月都创建一个单一的表，而且要时常进行来自多个表的合计查询，MERGE表这时会非常简单有效</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/MySQL/" rel="tag"># MySQL</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/09/27/Myisam和innodb/" rel="next" title="Myisam和innodb">
+                <i class="fa fa-chevron-left"></i> Myisam和innodb
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/10/16/javascript 闭包(Closure)/" rel="prev" title="javascript 闭包(Closure)">
+                javascript 闭包(Closure) <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/upload/image/avatar.jpg"
+                alt="Lao Yuan" />
+            
+              <p class="site-author-name" itemprop="name">Lao Yuan</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">42</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                
+                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-name">分类</span>
+                
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Lao Yuan</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
