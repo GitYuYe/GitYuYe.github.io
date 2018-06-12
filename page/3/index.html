@@ -187,10 +187,40 @@
         </li>
       
         
-        <li class="menu-item menu-item-archives">
-          <a href="/archives/" rel="section">
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
             
-              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
             
             归档
           </a>
@@ -322,22 +352,17 @@
       
         
           
-            <p>大家应该都知道php文件最终在浏览器上显示，走过3个缓冲阶段：<br>php buffer=》web server buffer=》浏览器buffer。</p>
-<p>先从php buffer开始讲起。<br><strong>php buffer</strong><br>php运行的结果先放入缓冲区（buffer），只有当缓冲区满了或者php运行完毕，才将数据输出去。</p>
-<p>缓冲区是通过php.ini中的output_buffering变量控制。output_buffering的默认值是off，可以设置大于0的数值来打开buffer。<br>但是这里需要注意的是：<br>1）使用ini_set是无法修改buffer的设置。<br>2）不管php.ini中output_buffering设置，cli模式下的php始终默认是output buffering为关闭的。但是你可以通过ob_start()将buffer打开。</p>
-<p>大家都说：ob_start()是将php buffer打开，ob_end_flush()是将php buffer关闭。但是php.ini中php buffer是关闭的，再次调用ob_end_flush()会报warning。</p>
-<p>另外，ob_*系列的函数是操作php本身的输出缓冲区。可以使用ob_flush()将php 缓冲区的内容强制输出。</p>
-<p><strong>web server buffer</strong><br>这里主要将apache和nginx的缓冲区。<br>1、apache buffer<br>当php的输出数据给apache服务器时，它也会做一层buffer（也将数据放入它的缓冲区，当缓冲区数据满或执行完毕时，才输出数据）。</p>
-<p>若想关闭缓冲区，可以在php层使用flush()来强制将缓冲区数据输出。<br>fulsh() 的工作原理：在apache module的sapi下, flush会通过调用sapi_module的flush成员函数指针, 间接的调用apache的api: ap_rflush刷新apache的输出缓冲区, 当然手册中也说了, 有一些apache的其他模块, 可能会改变这个动作的结果.例如mod_gzip，可能自己进行输出缓冲区，这将导致flush()函数产生的结果不会立即被发送到客户端浏览器。</p>
-<p>2、nginx buffer<br>nginx使用fastcgi缓冲区来缓冲数据。很遗憾的是，fastcgi是强制将buffer打开的，无法关闭缓冲区。</p>
-<p>有人有可能会想，无法关闭可以将buffer设置的足够小，来使缓冲数据输出，达到无缓冲的效果。但是这个想法无法实现。<br>原因一：fastcgi buffer无法识别小于1k的数值。<br>原因二：受参数之间大小关系的影响。</p>
-<p>具体可以看看fastcgi的一些buffer设置。<br>fastcgi_buffer_size是用来存储response的header数据。<br>fastcgi_buffers是用来存储response的内容数据.<br>fastcgi_busy_buffers_size是用来控制同时传输到客户端的buffer数量。一旦fastcgi_buffers设置的 buffer被写入，直到buffer里面的数据被完整的传输完（传输到客户端），这些buffer将会一直处在busy状态，我们不能对这些 buffer进行任何别的操作。所有处在busy状态的buffer size加起来不能超过fastcgi_busy_buffers_size。</p>
-<p>参数之间大小关系：<br>fastcgi_busy_buffers_size&lt;(all fastcgi_buffers - one buffer) 并且fastcgi_busy_buffers_size&gt;=max (fastcgi_buffer_size, one fastcgi _buffers)。<br>例如,在nginx.conf配置中有:<br>fastcgi_buffers 4 128k<br>fastcgi_buffer_size 256k<br>那么fastcgi_busy_buffers_size&lt;(4*128k - 4k) 并且fastcgi_busy_buffers_size&gt;=max(256k, 128k)<br>其中，4k（one buffer的大小）是linux系统默认的缓存大小，即一个内存页。</p>
-<p>若fastcgi_buffer_size设置的很小，会导致header过小的错误。你也同样无法保证设置的值会满足所有的情况。</p>
-<p>要注意的是：<br>1）flush, 严格来讲, 这个只有在PHP做为apache的Module(handler或者filter)安装的时候, 才有实际作用. 它是刷新WebServer(可以认为特指apache)的缓冲区.所以在nginx下，flush()函数是无法起作用的。</p>
-<p><strong>browser buffer</strong><br>在 php端无法关闭浏览器buffer(至少目前我没有研究出来，若有哪位高人研究出来了，请一定要记得分享)。为了使得数据及时输出，可以在发送真正内容 数据前，发送一些空格来填满浏览器的buffer。浏览器的buffer一满，就会将其他新输出的数据输出。但是不同的浏览器会设置不同的buffer大 小。为了保险期间，可以发送4096个空格，因为目前比较流行的浏览器的buffer还没有超过4k(一个内页大小)。</p>
+          大家应该都知道php文件最终在浏览器上显示，走过3个缓冲阶段：php buffer=》web server buffer=》浏览器buffer。
+先从php buffer开始讲起。php bufferphp运行的结果先放入缓冲区（buffer），只有当缓冲区满了或者php运行完毕，才将数据输出去。
 
-          
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2016/05/18/php的缓冲区/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
@@ -477,169 +502,16 @@
       
         
           
-            <p>昨天有个同事问我，说他的php -m和在apache 中运行phpinfo不一致(这里默认apache是把php编译成模块的)，譬如模块加载不一致。</p>
-<p>今天我运行php时候出现了一个问题,php -m和在apache 中运行phpinfo不一致(这里默认apache是把php编译成模块的)，譬如模块加载不一致。</p>
-<p>理论上这是不可能的。除非PHP做了特别的设置（此处不表，-c参数即可搞定), 默认情况下,两者都是一致的。</p>
-<p>经过一番查找错误，发现并没有特别之处。于是我也纳闷了、抑郁了、纠结了。这也引起了我的“执着心”，我很讨厌在这种问题上还能卡住。于是我告诉自己，今天不找出原因“切腹”。。。。。</p>
-<p>然而，经过我一步步调试。终于发现了问题。接下来放出原因，大家可能也会碰到</p>
-<p>1、我执行的是php -m .并不是类似 /usr/local/php/bin/php -m 这说明PHP存在于某个环境变量路径里。</p>
-<p>2、也就是恰恰上面这个原因给忽略了。我一直始终认环境变量是正确的。</p>
-<p>3、我重新编译PHP。问题依旧。</p>
-<p>4、最后，我执行了 which php .这时发现它的PHP在 /usr/bin 里面。</p>
-<p>5、也就是说不管怎么编译PHP，最终执行的php -m 的那个PHP可执行程序 永远是定位在 /usr/bin里面的那个老PHP</p>
-<p>6、我也忘了怎么操作使之 /usr/bin里也有个PHP</p>
-<p>7、解决方法如下：删掉 /usr/bin里面的那个老PHP 。把环境变量 设置到/usr/local/php/bin里。</p>
-<p>8、再次执行 php -m 一切正常了。</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://gityuanye.cn/2016/04/17/常用的分词组件或API(以备不时之需)/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Lao Yuan">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/upload/image/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Lao Yuan's Personal Website">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2016/04/17/常用的分词组件或API(以备不时之需)/" itemprop="url">常用的分词组件或API(以备不时之需)</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-04-17T10:10:00+08:00">
-                2016-04-17
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/PHP/" itemprop="url" rel="index">
-                    <span itemprop="name">PHP</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>做互联网系统 分词是必不可少的。除非咱不需要搜索、标签或者关键字分析等。</p>
-<p>在网上看到的一个列表，不错，保存以备不时之需</p>
-<p>BosonNLP：<a href="http://bosonnlp.com/dev/center" target="_blank" rel="noopener">http://bosonnlp.com/dev/center</a><br>IKAnalyzer：<a href="http://www.oschina.net/p/ikanalyzer" target="_blank" rel="noopener">http://www.oschina.net/p/ikanalyzer</a><br>NLPIR：<a href="http://ictclas.nlpir.org/docs" target="_blank" rel="noopener">http://ictclas.nlpir.org/docs</a><br>SCWS中文分词：<a href="http://www.xunsearch.com/scws/docs.php" target="_blank" rel="noopener">http://www.xunsearch.com/scws/docs.php</a><br>结巴分词：<a href="https://github.com/fxsjy/jieba" target="_blank" rel="noopener">https://github.com/fxsjy/jieba</a><br>盘古分词：<a href="http://pangusegment.codeplex.com/" target="_blank" rel="noopener">http://pangusegment.codeplex.com/</a><br>庖丁解牛：<a href="https://code.google.com/p/paoding/" target="_blank" rel="noopener">https://code.google.com/p/paoding/</a><br>搜狗分词：<a href="http://www.sogou.com/labs/webservice/" target="_blank" rel="noopener">http://www.sogou.com/labs/webservice/</a><br>腾讯文智：<br><a href="http://www.qcloud.com/wiki/API%E8%AF%B4%E6%98%8E%E6%96%87%E6%A1%A3" target="_blank" rel="noopener">http://www.qcloud.com/wiki/API%E8%AF%B4%E6%98%8E%E6%96%87%E6%A1%A3</a></p>
-<p> 如果是为了快速实现功能，而且我们没有太多的二次开发力量，那么我们应该使用REST API 模式的分词接口。直接调用，人家更新我们也自动跟着更新。不过，一旦人家歇菜，我们也跟着歇菜。所以使用REST API风格的分词要做好后手准备。另外，如果你需要有一些个性化功能，是木有的，这就是 “懒”和”笨“的代价。</p>
-<p> REST API接口的大家可以试一下。BosonNLP和新浪云，如果专注中文，那么新浪是比较好的选择。新浪早年的产品,譬如上个世纪90年代，还是很差的。现在的新浪很多产品还是值得学习的。(呀~~~不小心暴露了年龄)</p>
-<p><strong>PHP分词</strong></p>
-<p>如果你认为PHP是世界上最好的语言，那么选择SCWS是必须的啦。需要安装扩展，自己可以修改词库，配置也方便。适合于PHP大法传人和有一定二次开发能力的人。如果你能修改源码那就更屌了。</p>
-
-          
+          昨天有个同事问我，说他的php -m和在apache 中运行phpinfo不一致(这里默认apache是把php编译成模块的)，譬如模块加载不一致。
+今天我运行php时候出现了一个问题,php -m和在apache 中运行phpinfo不一致(这里默认apache是把php编译成模块的)，譬如模块加
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2016/05/03/关于出现php -m和phpinfo不一致的问题/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
@@ -779,41 +651,166 @@
       
         
           
-            <p><strong>首先，我们如果做个php网站，里面有个文件，要让php读取它，并给用户下载。很常见的方法是</strong></p>
-<p> $file = “aaa.rar”;<br> header(“Content-type: application/octet-stream”); //必须更改头，否则浏览器无法识别<br> header(‘Content-Disposition: attachment; filename=”‘ . basename($file) . ‘”‘); //弹出的下载框 需要文件名<br> readfile($file); //对于这句话 大家注意一下</p>
-<p><strong>这里实际上 有几个过程</strong></p>
-<p>1、php首先IO读取</p>
-<p>2、发送给apache缓冲区</p>
-<p>3、apache发送给浏览器</p>
-<p>然后用户才能下载。</p>
-<p>这里面如果你网站PV比较高的话，那么php那一步一样的读取是很耗费IO资源的。所以今天我们要解决的是让apache直接读取，避开php那一步。</p>
-<p><strong>于是我们就要用到一个apache（apache2系列)模块。 这个模块其实很简单、很好用。</strong></p>
-<p><strong>windows部署。</strong></p>
-<p>这个实在太简单。找到你的apache目录，找到modules目录。然后把下载下来的 mod_xsendfile.so 放进去</p>
-<p>然后打开你的apache配置文件，随便找个犄角旮旯 放入这么一行</p>
-<p>LoadModule xsendfile_module modules/mod_xsendfile.so <strong>#前面不能有 ‘#’ 号，否则等于没放</strong></p>
-<hr>
-<p><strong>重启 Apache 就算好了</strong></p>
-<hr>
-<p><strong>linux部署。</strong></p>
-<p>首先我们要安装apache的一个扩展工具–apxs， apxs是一个为Apache HTTP服务器编译和安装扩展模块的工具。</p>
-<p>这里我们使用yum安装。 (yum是什么不知道的话，就不要看下去了。对身体不好)</p>
-<p>yum -y install httpd-devel</p>
-<p>装好后执行</p>
-<p>which apxs</p>
-<p>默认会出现 /use/sbin/apxs</p>
-<p>结了。</p>
-<p>然后利用 apxs 安装xsendfile模块到apache中</p>
-<p>apxs -cia mod_xsendfile.c</p>
-<p>注意，你必须吧这个mod_xsendfile.c 下载下来传到你的linux服务器中，然后cd到这个文件所在目录执行上述命令。</p>
-<p>-cia选项表示编译（compile）、安装（install）以及启动（active）–&gt; a选项会自动添加如下模块在配置文件httpd.conf中 .如果你不喜欢可以把a选项去掉。然后手工加入模块引用，请参照windows 方法。没啥区别</p>
-<p><strong>重启 apache</strong></p>
-<p>接下里就是写php代码了。</p>
-<p>其实就一句话不一样。</p>
-<p> $file = “aaa.rar”;<br> header(“Content-type: application/octet-stream”); //必须更改头，否则浏览器无法识别 你们这帮货在玩下载<br> header(‘Content-Disposition: attachment; filename=”‘ . basename($file) . ‘”‘); //弹出的下载框 需要文件名<br><strong>header(“X-Sendfile: “.$file); //让xsendfile模块去发送这个文件，这样就绕过了 php读取这一层。效率明显提高了</strong></p>
-<p>注意，之前还有一些教大家修改配置文件、修改模块的文章和方法。如果你改完后 <strong>就是不记得重启apache</strong>，我真的没法帮你更多了。</p>
+          首先，我们如果做个php网站，里面有个文件，要让php读取它，并给用户下载。很常见的方法是
+ $file = “aaa.rar”; header(“Content-type: application/octet-stream”); //必须更改头，否则浏览器无法识别 header(‘Content-
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2016/04/17/php读取文件/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://gityuanye.cn/2016/04/17/常用的分词组件或API(以备不时之需)/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Lao Yuan">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/upload/image/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lao Yuan's Personal Website">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2016/04/17/常用的分词组件或API(以备不时之需)/" itemprop="url">常用的分词组件或API(以备不时之需)</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-04-17T10:10:00+08:00">
+                2016-04-17
+              </time>
+            
+
+            
+
+            
+          </span>
 
           
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/PHP/" itemprop="url" rel="index">
+                    <span itemprop="name">PHP</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+          做互联网系统 分词是必不可少的。除非咱不需要搜索、标签或者关键字分析等。
+在网上看到的一个列表，不错，保存以备不时之需
+BosonNLP：http://bosonnlp.com/dev/centerIKAnalyzer：http://www.oschina.net/p/ikanalyzerNLPIR
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2016/04/17/常用的分词组件或API(以备不时之需)/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
@@ -953,35 +950,17 @@
       
         
           
-            <p><strong>很多做电商开发的小伙伴会遇到这个需求。</strong></p>
-<p> 譬如我们要做一个 商品限时秒杀的功能。 其实如果你的网站很有流量，那么很多用户在几秒内同时点你的商品，确实会出现“抢购人数太多，请排队”。</p>
-<p> 但是呢，大部分网站然而并没有这么牛叉。为了让用户感受到商品很抢手，动不动就提示”系统繁忙“的效果，我们需要做一个程序来”假装很繁忙“。 （除了淘宝，大家不要以为其他网站真的很繁忙哦，只不过人家是故意让你觉得不抢就买不到，求懂）</p>
-<p><strong>本文来设定一个规则，大家可以根据我的思路扩展即可。</strong><br> 1、商品购买链接，每个人都可以点。<br> 2、我们要让用户有70%的可能性出现“排队中，商品繁忙”</p>
-<p> 本文用 php代码实现。其他语言一样，改改。</p>
-<p><strong>首先我们用小学学到的知识想一下：</strong><br> 1、 如果有10个球，其中3个红球，7个篮球。放在袋子里。随便胡乱的混合一下，让你用手伸进去摸，那么摸到篮球的几率是多少？显然，是70%</p>
-<p><strong>之前我把这个需求给了一个小伙伴看。他给出的答案如下：</strong><br> $arr=array(“red”,”red”,”red”,”blue”,”blue”,”blue”,”blue”,”blue”,”blue”,”blue”);<br> 然后 echo $arr[rand(0,9)];<br> 然后告诉我，他两句话就搞定了。</p>
-<p><strong>这个做法其实已经蛮聪明了。但是这位小伙伴忽略了很重要的一点</strong></p>
-<p>2、如果第二个人来摸呢？ 这里有个注意点，如果第二个人来摸，那么必定要把这10个球补满（依然是3个红球，7个篮球）<br>然后最重要的，<strong>还要继续“胡乱的、随便的”混合一下</strong>。这样，第二个人来摸到篮球的几率才会依然是70%.</p>
-<p> 上面的程序明显忽略了：继续“胡乱的、随便的”混合一下。 如果每个人都按这个 前三个红后七个蓝 来摸球。那么php的rand函数不能保证篮球是70%。</p>
-<p> 说到这，很多大神要拿出各种高级算法，譬如啥贝叶斯、矩阵之类的字眼出来。如果这么一个电商功能要用这么复杂的运算，我相信你的老板不会同意你花这么多时间来完成这个功能吧。</p>
-<p><strong>接下来，我放出一种简单，但也不失精准性的算法。我们的目标是：使用php的简单函数，尽可能的让摸到篮球的几率接近于70%。</strong></p>
-<p><strong>第一步：</strong> $arr=array(“red”,”red”,”red”,”blue”,”blue”,”blue”,”blue”,”blue”,”blue”,”blue”); 这个东西要有，这就是初始化的三个红球，7个篮球</p>
-<p><strong>第二步</strong>：随意的、胡乱的混合。<br> 上面一个数组有10个元素，我们可以采取随机两个球交换，交换多少次可以自己定<br> 先写个交换函数 (如果这个函数看不懂，就要恶补基础知识啦）<br>function swap($i,$j,$arr)<br> {<br> $tmp=$arr[$i];<br> $arr[$i]=$arr[$j];<br> $arr[$j]=$tmp;<br> return $arr;<br> }<br> 这个函数实现，我输入两个随便什么序号，实现对这个数组中符合该序号的求交换一下。</p>
-<p>本文出自于 <a href="http://www.hishenyi.com/" target="_blank" rel="noopener">沈逸的个人原创博客</a></p>
-<p><strong>第三步：优化交换算法。</strong><br>因为上面的交换函数，输入的随机参数导致，红球和红球交换，或者篮球和篮球交换。那么然而并没有实现“真正的”混合</p>
-<p>所以我们要写个补充函数，确保每次交换，都必须是红球和篮球进行随意交换</p>
-<p>function getRange($arr,$v)<br> {<br> $ret=array();<br> for($i=0;$i&lt;count($arr);$i++)<br> {<br> if($arr[$i]==$v)<br> {<br> $ret[]=$i;<br> }<br> }<br> return $ret[rand(0,count($ret)-1)];<br> }<br>这个函数的作用是：在10个球中找到 红球或篮球，然后分别取出他们目前所在的序号，然后利用rand函数随机取一个篮球或者红球的序号。</p>
-<p>本文出自于 <a href="http://www.hishenyi.com/" target="_blank" rel="noopener">沈逸的个人原创博客</a></p>
-<p><strong>诺看一下这里：</strong><br>$i=getRange($arr,”red”); //这样可以取出随机一个红球的序号<br>$j=getRange($arr,”blue”); //这样可以取出随机一个篮球的序号</p>
-<p><strong>第四步：比较重要。开始随意的、胡乱的混合</strong></p>
-<p> for($num=0;$num&lt;10;$num++) =”” {=”” $i=”getRange($arr,”red”);” $j=”getRange($arr,”blue”);” $arr=”swap($i,$j,$arr);” echo=”” implode(“,”,=”” $arr).”|”.$i.”|”.$j.””; //这个语句可以看一下输出，混合过后的排列，是否每次都不一样<br> }<br> 这里的注意点是，$num&lt;10 。代表我混合10次。 等于用你的大手到袋子里胡乱搅10次。 理论上搅的越多，随机性越强。这里其实10次足以。</p>
-<p> 第四步执行完成后出来的$arr 就是搅拌好的 红球和篮球的混合体。</p>
-<p><strong>第五步：再次调用 rand函数</strong></p>
-<p> echo $arr[rand(0,9)];</p>
-<p>如果出来的是内容是blue ，则直接exit(“老子很忙，别烦”)<br>如果是red，那么让程序继续执行购买程序吧。</p>
-<p>这个大家自己编写吧。</p>
-
-          
+          很多做电商开发的小伙伴会遇到这个需求。
+ 譬如我们要做一个 商品限时秒杀的功能。 其实如果你的网站很有流量，那么很多用户在几秒内同时点你的商品，确实会出现“抢购人数太多，请排队”。
+ 但是呢，大部分网站然而并没有这么牛叉。为了让用户感受到商品很抢手，动不动就提示”系统繁忙“的效果，我们需要做一个程序
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2016/04/02/php实现商品抢购繁忙/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
@@ -1121,16 +1100,18 @@
       
         
           
-            <p>第一步：</p>
-<p>在apache配置文件XXX.conf(默认的是httpd.conf,如果你手工新建的那就不是这个名字) 中找到#LoadModule rewrite_module modules/mod_rewrite.so去掉前面的#号</p>
-<p>第二步：</p>
-<p>在apache配置文件httpd.conf 中找到&lt;Directory /与&lt;/Directory内的AllowOverride None改为AllowOverride All</p>
-<p>第三步：创建.htaccess 文件</p>
-<p>在网站根目录下新建 .htaccess文件。注意用记事本估计不太好建，用编辑器都能建(推荐phpdesigner或者Hbuilder)</p>
-<p>.htaccess的文件示例</p>
-<p> RewriteEngine On<br> RewriteRule ^reg /index.php?type=reg [L] <strong>// 这时你访问 xxx/reg 出来的内容等同于你直接访问**</strong>index.php?type=reg<strong><em>\</em></strong><br> RewriteCond %{QUERY_STRING} ^from=(.*)<br> RewriteRule ^login$ /index.php?type=login&amp;from=%1 [L]<br> RewriteRule ^login /index.php?type=login [L]</p>
-
-          
+          第一步：
+在apache配置文件XXX.conf(默认的是httpd.conf,如果你手工新建的那就不是这个名字) 中找到#LoadModule rewrite_module modules/mod_rewrite.so去掉前面的#号
+第二步：
+在apache配置文件httpd.conf 中找到&l
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2016/03/21/PHP支持htaccess实现伪静态的注意事项/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
@@ -1270,25 +1251,21 @@
       
         
           
-            <p>我们在获取Get或者Post参数时，会发现页面会</p>
-<p>报Undefined index提示,如下:</p>
-<p>$type=$_GET[“type”];</p>
-<p>注意：这是一个提示，而并不是错误。原因在于$_GET数组里面没有这个key，那么我们直接获取就会报这个提示。</p>
-<p><strong>两种解决方法：</strong></p>
-<p><strong>1、修改代码</strong></p>
-<p>if(isset($_GET[“type”])</p>
-<p> $type=$_GET[“type”];</p>
-<p>也就是做一次判断，防止报这个提示</p>
-<p><strong>2、修改php.ini</strong></p>
-<p>打开php.ini 。搜索error_reporting = E_ALL</p>
-<p>如果找到了，把 这句话改成</p>
-<p>error_reporting = E_ALL &amp; ~E_NOTICE (注意前面 如果有分号也要去掉),</p>
-<p>E_ALL 代表所有错误、警告、提示都爆出来。 ~ 这个符号代表排除，和E_NOTICE配合就是 排除“提示”</p>
-<p>重启apache</p>
-<p>个人推荐第二种。 要个毛提示啊，我这么写自然有我的道理，关你php什么事。</p>
-<p>还增加apache 日志容量，增加了压力，还能省掉我们写代码的时间。多好</p>
-
-          
+          我们在获取Get或者Post参数时，会发现页面会
+报Undefined index提示,如下:
+$type=$_GET[“type”];
+注意：这是一个提示，而并不是错误。原因在于$_GET数组里面没有这个key，那么我们直接获取就会报这个提示。
+两种解决方法：
+1、修改代码
+if(isset($_
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2016/03/09/php中关于Undefined index提示/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
@@ -1428,157 +1405,18 @@
       
         
           
-            <p>控制台（Console）是Firebug的第一个面板，也是最重要的面板，主要作用是显示网页加载过程中产生各类信息。</p>
-<p><strong>一、显示信息的命令</strong></p>
-<p>Firebug内置一个console对象，提供5种方法，用来显示信息。</p>
-<p>最简单的方法是console.log()，可以用来取代alert()或document.write()。比如，在网页脚本中使用console.log(“Hello World”)，加载时控制台就会自动显示如下内容。</p>
-<p><a href="http://image.beekka.com/blog/201103/bg2011032601.png" target="_blank" rel="noopener"><img src="http://image.beekka.com/blog/201103/bg2011032601.png" alt="img"></a></p>
-<p>另外，根据信息的不同性质，console对象还有4种显示信息的方法，分别是一般信息console.info()、除错信息console.debug()、警告提示console.warn()、错误提示console.error()。</p>
-<p>比如，在网页脚本中插入下面四行：</p>
-<blockquote>
-<p>　　console.info(“这是info”);</p>
-<p>　　console.debug(“这是debug”);</p>
-<p>　　console.warn(“这是warn”);</p>
-<p>　　console.error(“这是error”);</p>
-</blockquote>
-<p>加载时，控制台会显示如下内容。</p>
-<p><a href="http://image.beekka.com/blog/201103/bg2011032602.png" target="_blank" rel="noopener"><img src="http://image.beekka.com/blog/201103/bg2011032602.png" alt="img"></a></p>
-<p>可以看到，不同性质的信息前面有不同的图标，并且每条信息后面都有超级链接，点击后跳转到网页源码的相应行。</p>
-<p><strong>二、占位符</strong></p>
-<p>console对象的上面5种方法，都可以使用printf风格的占位符。不过，占位符的种类比较少，只支持字符（%s）、整数（%d或%i）、浮点数（%f）和对象（%o）四种。</p>
-<p>比如，</p>
-<blockquote>
-<p>　　console.log(“%d年%d月%d日”,2011,3,26);</p>
-<p>　　console.log(“圆周率是%f”,3.1415926);</p>
-</blockquote>
-<p><a href="http://image.beekka.com/blog/201103/bg2011032603.png" target="_blank" rel="noopener"><img src="http://image.beekka.com/blog/201103/bg2011032603.png" alt="img"></a></p>
-<p>%o占位符，可以用来查看一个对象内部情况。比如，有这样一个对象：</p>
-<blockquote>
-<p>　　var dog = {} ;</p>
-<p>　　dog.name = “大毛” ;</p>
-<p>　　dog.color = “黄色”;</p>
-</blockquote>
-<p>然后，对它使用o%占位符。</p>
-<blockquote>
-<p>　　console.log(“%o”,dog);</p>
-</blockquote>
-<p><a href="http://image.beekka.com/blog/201103/bg2011032604.png" target="_blank" rel="noopener"><img src="http://image.beekka.com/blog/201103/bg2011032604.png" alt="img"></a></p>
-<p><strong>三、分组显示</strong></p>
-<p>如果信息太多，可以分组显示，用到的方法是console.group()和console.groupEnd()。</p>
-<blockquote>
-<p>　　console.group(“第一组信息”);</p>
-<p>　　　　console.log(“第一组第一条”);</p>
-<p>　　　　console.log(“第一组第二条”);</p>
-<p>　　console.groupEnd();</p>
-<p>　　console.group(“第二组信息”);</p>
-<p>　　　　console.log(“第二组第一条”);</p>
-<p>　　　　console.log(“第二组第二条”);</p>
-<p>　　console.groupEnd();</p>
-</blockquote>
-<p><a href="http://image.beekka.com/blog/201103/bg2011032605.png" target="_blank" rel="noopener"><img src="http://image.beekka.com/blog/201103/bg2011032605.png" alt="img"></a></p>
-<p>点击组标题，该组信息会折叠或展开。</p>
-<p><a href="http://image.beekka.com/blog/201103/bg2011032606.png" target="_blank" rel="noopener"><img src="http://image.beekka.com/blog/201103/bg2011032606.png" alt="img"></a></p>
-<p><strong>四、console.dir()</strong></p>
-<p>console.dir()可以显示一个对象所有的属性和方法。</p>
-<p>比如，现在为第二节的dog对象，添加一个bark()方法。</p>
-<blockquote>
-<p>　　dog.bark = function(){alert(“汪汪汪”);};</p>
-</blockquote>
-<p>然后，显示该对象的内容，</p>
-<blockquote>
-<p>　　console.dir(dog);</p>
-</blockquote>
-<p><a href="http://image.beekka.com/blog/201103/bg2011032607.png" target="_blank" rel="noopener"><img src="http://image.beekka.com/blog/201103/bg2011032607.png" alt="img"></a></p>
-<p><strong>五、console.dirxml()</strong></p>
-<p>console.dirxml()用来显示网页的某个节点（node）所包含的html/xml代码。</p>
-<p>比如，先获取一个表格节点，</p>
-<blockquote>
-<p>　　var table = document.getElementById(“table1”);</p>
-</blockquote>
-<p>然后，显示该节点包含的代码。</p>
-<blockquote>
-<p>　　console.dirxml(table);</p>
-</blockquote>
-<p><a href="http://image.beekka.com/blog/201103/bg2011032608.png" target="_blank" rel="noopener"><img src="http://image.beekka.com/blog/201103/bg2011032608.png" alt="img"></a></p>
-<p><strong>六、console.assert()</strong></p>
-<p>console.assert()用来判断一个表达式或变量是否为真。如果结果为否，则在控制台输出一条相应信息，并且抛出一个异常。</p>
-<p>比如，下面两个判断的结果都为否。</p>
-<blockquote>
-<p>　　var result = 0;</p>
-<p>　　console.assert( result );</p>
-<p>　　var year = 2000;</p>
-<p>　　console.assert(year == 2011 );</p>
-</blockquote>
-<p><a href="http://image.beekka.com/blog/201103/bg2011032609.png" target="_blank" rel="noopener"><img src="http://image.beekka.com/blog/201103/bg2011032609.png" alt="img"></a></p>
-<p><strong>七、console.trace()</strong></p>
-<p>console.trace()用来追踪函数的调用轨迹。</p>
-<p>比如，有一个加法器函数。</p>
-<blockquote>
-<p>　　function add(a,b){</p>
-<p>　　　　return a+b;</p>
-<p>　　}</p>
-</blockquote>
-<p>我想知道这个函数是如何被调用的，在其中加入console.trace()方法就可以了。</p>
-<blockquote>
-<p>　　function add(a,b){</p>
-<p>　　　　console.trace();</p>
-<p>　　　　return a+b;</p>
-<p>　　}</p>
-</blockquote>
-<p>假定这个函数的调用代码如下：</p>
-<blockquote>
-<p>　　var x = add3(1,1);</p>
-<p>　　function add3(a,b){return add2(a,b);}</p>
-<p>　　function add2(a,b){return add1(a,b);}</p>
-<p>　　function add1(a,b){return add(a,b);}</p>
-</blockquote>
-<p>运行后，会显示add()的调用轨迹，从上到下依次为add()、add1()、add2()、add3()。</p>
-<p><a href="http://image.beekka.com/blog/201103/bg2011032610.png" target="_blank" rel="noopener"><img src="http://image.beekka.com/blog/201103/bg2011032610.png" alt="img"></a></p>
-<p><strong>八、计时功能</strong></p>
-<p>console.time()和console.timeEnd()，用来显示代码的运行时间。</p>
-<blockquote>
-<p>　　console.time(“计时器一”);</p>
-<p>　　for(var i=0;i&lt;1000;i++){</p>
-<p>　　　　for(var j=0;j&lt;1000;j++){}</p>
-<p>　　}</p>
-<p>　　console.timeEnd(“计时器一”);</p>
-</blockquote>
-<p><a href="http://image.beekka.com/blog/201103/bg2011032611.png" target="_blank" rel="noopener"><img src="http://image.beekka.com/blog/201103/bg2011032611.png" alt="img"></a></p>
-<p><strong>九、性能分析</strong></p>
-<p>性能分析（Profiler）就是分析程序各个部分的运行时间，找出瓶颈所在，使用的方法是console.profile()。</p>
-<p>假定有一个函数Foo()，里面调用了另外两个函数funcA()和funcB()，其中funcA()调用10次，funcB()调用1次。</p>
-<blockquote>
-<p>　　function Foo(){</p>
-<p>　　　　for(var i=0;i&lt;10;i++){funcA(1000);}</p>
-<p>　　　　funcB(10000);</p>
-<p>　　}</p>
-<p>　　function funcA(count){</p>
-<p>　　　　for(var i=0;i&lt;count;i++){}</p>
-<p>　　}</p>
-<p>　　function funcB(count){</p>
-<p>　　　　for(var i=0;i&lt;count;i++){}</p>
-<p>　　}</p>
-</blockquote>
-<p>然后，就可以分析Foo()的运行性能了。</p>
-<blockquote>
-<p>　　console.profile(‘性能分析器一’);</p>
-<p>　　Foo();</p>
-<p>　　console.profileEnd();</p>
-</blockquote>
-<p>控制台会显示一张性能分析表，如下图。</p>
-<p><a href="http://image.beekka.com/blog/201103/bg2011032612.png" target="_blank" rel="noopener"><img src="http://image.beekka.com/blog/201103/bg2011032612.png" alt="img"></a></p>
-<p>标题栏提示，一共运行了12个函数，共耗时2.656毫秒。其中funcA()运行10次，耗时1.391毫秒，最短运行时间0.123毫秒，最长0.284毫秒，平均0.139毫秒；funcB()运行1次，耗时1.229ms毫秒。</p>
-<p>除了使用console.profile()方法，firebug还提供了一个”概况”（Profiler）按钮。第一次点击该按钮，”性能分析”开始，你可以对网页进行某种操作（比如ajax操作），然后第二次点击该按钮，”性能分析”结束，该操作引发的所有运算就会进行性能分析。</p>
-<p><a href="http://image.beekka.com/blog/201103/bg2011032613.png" target="_blank" rel="noopener"><img src="http://image.beekka.com/blog/201103/bg2011032613.png" alt="img"></a></p>
-<p><strong>十、属性菜单</strong></p>
-<p>控制台面板的名称后面，有一个倒三角，点击后会显示属性菜单。</p>
-<p><a href="http://image.beekka.com/blog/201103/bg2011032614.png" target="_blank" rel="noopener"><img src="http://image.beekka.com/blog/201103/bg2011032614.png" alt="img"></a></p>
-<p>默认情况下，控制台只显示Javascript错误。如果选中Javascript警告、CSS错误、XML错误都送上，则相关的提示信息都会显示。</p>
-<p>这里比较有用的是”显示XMLHttpRequests”，也就是显示ajax请求。选中以后，网页的所有ajax请求，都会在控制台面板显示出来。</p>
-<p>比如，点击一个<a href="http://developer.yahoo.com/yui/examples/datatable/dt_xhrlocalxml.html" target="_blank" rel="noopener">YUI示例</a>，控制台就会告诉我们，它用ajax方式发出了一个GET请求，http请求和响应的头信息和内容主体，也都可以看到。</p>
-<p><a href="http://image.beekka.com/blog/201103/bg2011032615.png" target="_blank" rel="noopener"><img src="http://image.beekka.com/blog/201103/bg2011032615.png" alt="img"></a></p>
-
-          
+          控制台（Console）是Firebug的第一个面板，也是最重要的面板，主要作用是显示网页加载过程中产生各类信息。
+一、显示信息的命令
+Firebug内置一个console对象，提供5种方法，用来显示信息。
+最简单的方法是console.log()，可以用来取代alert()或document.wr
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2016/02/19/FireBug使用/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
@@ -1718,193 +1556,18 @@
       
         
           
-            <p>一、选择网页元素</p>
-<p>jQuery的基本设计思想和主要用法，就是“选择某个网页元素，然后对其进行某种操作”。这是它区别于其他Javascript库的根本特点。</p>
-<p>使用jQuery的第一步，往往就是将一个选择表达式，放进构造函数jQuery()（简写为$），然后得到被选中的元素。</p>
-<p>选择表达式可以是CSS选择器：</p>
-<p>　　$(document) //选择整个文档对象<br>　　$(‘#myId’) //选择ID为myId的网页元素<br>　　$(‘div.myClass’) // 选择class为myClass的div元素<br>　　$(‘input[name=first]’) // 选择name属性等于first的input元素</p>
-<p>也可以是jQuery特有的表达式：</p>
-<p>　　$(‘a:first’) //选择网页中第一个a元素<br>　　$(‘tr:odd’) //选择表格的奇数行<br>　　$(‘#myForm :input’) // 选择表单中的input元素<br>　　$(‘div:visible’) //选择可见的div元素<br>　　$(‘div:gt(2)’) // 选择所有的div元素，除了前三个<br>　　$(‘div:animated’) // 选择当前处于动画状态的div元素</p>
-<p>二、改变结果集</p>
-<p>jQuery设计思想之二，就是提供各种强大的过滤器，对结果集进行筛选，缩小选择结果。</p>
-<p>　　$(‘div’).has(‘p’); // 选择包含p元素的div元素</p>
-<p>　　$(‘div’).not(‘.myClass’); //选择class不等于myClass的div元素</p>
-<p>　　$(‘div’).filter(‘.myClass’); //选择class等于myClass的div元素</p>
-<p>　　$(‘div’).first(); //选择第1个div元素</p>
-<p>　　$(‘div’).eq(5); //选择第6个div元素</p>
-<p>有时候，我们需要从结果集出发，移动到附近的相关元素，jQuery也提供了在DOM树上的移动方法：</p>
-<p>　　$(‘div’).next(‘p’); //选择div元素后面的第一个p元素</p>
-<p>　　$(‘div’).parent(); //选择div元素的父元素</p>
-<p>　　$(‘div’).closest(‘form’); //选择离div最近的那个form父元素</p>
-<p>　　$(‘div’).children(); //选择div的所有子元素</p>
-<p>　　$(‘div’).siblings(); //选择div的同级元素</p>
-<p>三、链式操作</p>
-<p>jQuery设计思想之三，就是最终选中网页元素以后，可以对它进行一系列操作，并且所有操作可以连接在一起，以链条的形式写出来，比如：</p>
-<p>　　$(‘div’).find(‘h3’).eq(2).html(‘Hello’);</p>
-<p>分解开来，就是下面这样：</p>
-<p>　　$(‘div’) //找到div元素</p>
-<p>　　　.find(‘h3’) //选择其中的h3元素</p>
-<p>　　　.eq(2) //选择第3个h3元素</p>
-<p>　　　.html(‘Hello’); //将它的内容改为Hello</p>
-<p>这是jQuery最令人称道、最方便的特点。它的原理在于每一步的jQuery操作，返回的都是一个jQuery对象，所以不同操作可以连在一起。</p>
-<p>jQuery还提供了.end()方法，使得结果集可以后退一步：</p>
-<p>　　$(‘div’)</p>
-<p>　　　.find(‘h3’)</p>
-<p>　　　.eq(2)</p>
-<p>　　　.html(‘Hello’)</p>
-<p>　　　.end() //退回到选中所有的h3元素的那一步</p>
-<p>　　　.eq(0) //选中第一个h3元素</p>
-<p>　　　.html(‘World’); //将它的内容改为World</p>
-<p>四、元素的操作：取值和赋值</p>
-<p>操作网页元素，最常见的需求是取得它们的值，或者对它们进行赋值。</p>
-<p>jQuery设计思想之四，就是使用同一个函数，来完成取值（getter）和赋值（setter），即”取值器”与”赋值器”合一。到底是取值还是赋值，由函数的参数决定。</p>
-<p>　　$(‘h1’).html(); //html()没有参数，表示取出h1的值</p>
-<p>　　$(‘h1’).html(‘Hello’); //html()有参数Hello，表示对h1进行赋值</p>
-<p>常见的取值和赋值函数如下：</p>
-<p>　　.html() 取出或设置html内容</p>
-<p>　　.text() 取出或设置text内容</p>
-<p>　　.attr() 取出或设置某个属性的值</p>
-<p>　　.width() 取出或设置某个元素的宽度</p>
-<p>　　.height() 取出或设置某个元素的高度</p>
-<p>　　.val() 取出某个表单元素的值</p>
-<p>需要注意的是，如果结果集包含多个元素，那么赋值的时候，将对其中所有的元素赋值；取值的时候，则是只取出第一个元素的值（.text()例外，它取出所有元素的text内容）。</p>
-<p>五、元素的操作：移动</p>
-<p>jQuery设计思想之五，就是提供两组方法，来操作元素在网页中的位置移动。一组方法是直接移动该元素，另一组方法是移动其他元素，使得目标元素达到我们想要的位置。</p>
-<p>假定我们选中了一个div元素，需要把它移动到p元素后面。</p>
-<p>第一种方法是使用.insertAfter()，把div元素移动p元素后面：</p>
-<p>　　$(‘div’).insertAfter($(‘p’));</p>
-<p>第二种方法是使用.after()，把p元素加到div元素前面：</p>
-<p>　　$(‘p’).after($(‘div’));</p>
-<p>表面上看，这两种方法的效果是一样的，唯一的不同似乎只是操作视角的不同。但是实际上，它们有一个重大差别，那就是返回的元素不一样。第一种方法返回div元素，第二种方法返回p元素。你可以根据需要，选择到底使用哪一种方法。</p>
-<p>使用这种模式的操作方法，一共有四对：</p>
-<p>　　.insertAfter()和.after()：在现存元素的外部，从后面插入元素</p>
-<p>　　.insertBefore()和.before()：在现存元素的外部，从前面插入元素</p>
-<p>　　.appendTo()和.append()：在现存元素的内部，从后面插入元素</p>
-<p>　　.prependTo()和.prepend()：在现存元素的内部，从前面插入元素</p>
-<p>六、元素的操作：复制、删除和创建</p>
-<p>除了元素的位置移动之外，jQuery还提供其他几种操作元素的重要方法。</p>
-<p>复制元素使用.clone()。</p>
-<p>删除元素使用.remove()和.detach()。两者的区别在于，前者不保留被删除元素的事件，后者保留，有利于重新插入文档时使用。</p>
-<p>清空元素内容（但是不删除该元素）使用.empty()。</p>
-<p>创建新元素的方法非常简单，只要把新元素直接传入jQuery的构造函数就行了：</p>
-<p>　　$(‘</p>
-<p>Hello</p>
-<p>‘);<br>　　$(‘</p>
-<p>new list item<br>‘);<br>　　$(‘ul’).append(‘</p>
-<p>list item<br>‘);<br>七、工具方法</p>
-<p>jQuery设计思想之六：除了对选中的元素进行操作以外，还提供一些与元素无关的工具方法（utility）。不必选中元素，就可以直接使用这些方法。</p>
-<p>如果你懂得Javascript语言的继承原理，那么就能理解工具方法的实质。它是定义在jQuery构造函数上的方法，即jQuery.method()，所以可以直接使用。而那些操作元素的方法，是定义在构造函数的prototype对象上的方法，即jQuery.prototype.method()，所以必须生成实例（即选中元素）后使用。如果不理解这种区别，问题也不大，只要把工具方法理解成，是像javascript原生函数那样，可以直接使用的方法就行了。</p>
-<p>常用的工具方法有以下几种：</p>
-<p>　　$.trim() 去除字符串两端的空格。</p>
-<p>　　$.each() 遍历一个数组或对象。</p>
-<p>　　$.inArray() 返回一个值在数组中的索引位置。如果该值不在数组中，则返回-1。</p>
-<p>　　$.grep() 返回数组中符合某种标准的元素。</p>
-<p>　　$.extend() 将多个对象，合并到第一个对象。</p>
-<p>　　$.makeArray() 将对象转化为数组。</p>
-<p>　　$.type() 判断对象的类别（函数对象、日期对象、数组对象、正则对象等等）。</p>
-<p>　　$.isArray() 判断某个参数是否为数组。</p>
-<p>　　$.isEmptyObject() 判断某个对象是否为空（不含有任何属性）。</p>
-<p>　　$.isFunction() 判断某个参数是否为函数。</p>
-<p>　　$.isPlainObject() 判断某个参数是否为用”{}”或”new Object”建立的对象。</p>
-<p>　　$.support() 判断浏览器是否支持某个特性。</p>
-<p>八、事件操作</p>
-<p>jQuery设计思想之七，就是把事件直接绑定在网页元素之上。</p>
-<p>　　$(‘p’).click(function(){</p>
-<p>　　　　alert(‘Hello’);</p>
-<p>　　});</p>
-<p>目前，jQuery主要支持以下事件：</p>
-<p>　　.blur() 表单元素失去焦点。</p>
-<p>　　.change() 表单元素的值发生变化</p>
-<p>　　.click() 鼠标单击</p>
-<p>　　.dblclick() 鼠标双击</p>
-<p>　　.focus() 表单元素获得焦点</p>
-<p>　　.focusin() 子元素获得焦点</p>
-<p>　　.focusout() 子元素失去焦点</p>
-<p>　　.hover() 同时为mouseenter和mouseleave事件指定处理函数</p>
-<p>　　.keydown() 按下键盘（长时间按键，只返回一个事件）</p>
-<p>　　.keypress() 按下键盘（长时间按键，将返回多个事件）</p>
-<p>　　.keyup() 松开键盘</p>
-<p>　　.load() 元素加载完毕</p>
-<p>　　.mousedown() 按下鼠标</p>
-<p>　　.mouseenter() 鼠标进入（进入子元素不触发）</p>
-<p>　　.mouseleave() 鼠标离开（离开子元素不触发）</p>
-<p>　　.mousemove() 鼠标在元素内部移动</p>
-<p>　　.mouseout() 鼠标离开（离开子元素也触发）</p>
-<p>　　.mouseover() 鼠标进入（进入子元素也触发）</p>
-<p>　　.mouseup() 松开鼠标</p>
-<p>　　.ready() DOM加载完成</p>
-<p>　　.resize() 浏览器窗口的大小发生改变</p>
-<p>　　.scroll() 滚动条的位置发生变化</p>
-<p>　　.select() 用户选中文本框中的内容</p>
-<p>　　.submit() 用户递交表单</p>
-<p>　　.toggle() 根据鼠标点击的次数，依次运行多个函数</p>
-<p>　　.unload() 用户离开页面</p>
-<p>以上这些事件在jQuery内部，都是.bind()的便捷方式。使用.bind()可以更灵活地控制事件，比如为多个事件绑定同一个函数：</p>
-<p>　　$(‘input’).bind(</p>
-<p>　　　　‘click change’, //同时绑定click和change事件</p>
-<p>　　　　function() {</p>
-<p>　　　　　　alert(‘Hello’);</p>
-<p>　　　　}</p>
-<p>　　);</p>
-<p>有时，你只想让事件运行一次，这时可以使用.one()方法。</p>
-<p>　　$(“p”).one(“click”, function() {</p>
-<p>　　　　alert(“Hello”); //只运行一次，以后的点击不会运行</p>
-<p>　　});</p>
-<p>.unbind()用来解除事件绑定。</p>
-<p>　　$(‘p’).unbind(‘click’);</p>
-<p>所有的事件处理函数，都可以接受一个事件对象（event object）作为参数，比如下面例子中的e：</p>
-<p>　　$(“p”).click(function(e) {</p>
-<p>　　　　alert(e.type); // “click”</p>
-<p>　　});</p>
-<p>这个事件对象有一些很有用的属性和方法：</p>
-<p>　　event.pageX 事件发生时，鼠标距离网页左上角的水平距离</p>
-<p>　　event.pageY 事件发生时，鼠标距离网页左上角的垂直距离</p>
-<p>　　event.type 事件的类型（比如click）</p>
-<p>　　event.which 按下了哪一个键</p>
-<p>　　event.data 在事件对象上绑定数据，然后传入事件处理函数</p>
-<p>　　event.target 事件针对的网页元素</p>
-<p>　　event.preventDefault() 阻止事件的默认行为（比如点击链接，会自动打开新页面）</p>
-<p>　　event.stopPropagation() 停止事件向上层元素冒泡</p>
-<p>在事件处理函数中，可以用this关键字，返回事件针对的DOM元素：</p>
-<p>　　$(‘a’).click(function(e) {<br>　　　　if ($(this).attr(‘href’).match(‘evil’)) { //如果确认为有害链接</p>
-<p>　　　　　　e.preventDefault(); //阻止打开</p>
-<p>　　　　　　$(this).addClass(‘evil’); //加上表示有害的class</p>
-<p>　　　　}</p>
-<p>　　});</p>
-<p>有两种方法，可以自动触发一个事件。一种是直接使用事件函数，另一种是使用.trigger()或.triggerHandler()。</p>
-<p>　　$(‘a’).click();</p>
-<p>　　$(‘a’).trigger(‘click’);</p>
-<p>九、特殊效果</p>
-<p>最后，jQuery允许对象呈现某些特殊效果。</p>
-<p>　　$(‘h1’).show(); //展现一个h1标题</p>
-<p>常用的特殊效果如下：</p>
-<p>　　.fadeIn() 淡入</p>
-<p>　　.fadeOut() 淡出</p>
-<p>　　.fadeTo() 调整透明度</p>
-<p>　　.hide() 隐藏元素</p>
-<p>　　.show() 显示元素</p>
-<p>　　.slideDown() 向下展开</p>
-<p>　　.slideUp() 向上卷起</p>
-<p>　　.slideToggle() 依次展开或卷起某个元素</p>
-<p>　　.toggle() 依次展示或隐藏某个元素</p>
-<p>除了.show()和.hide()，所有其他特效的默认执行时间都是400ms（毫秒），但是你可以改变这个设置。</p>
-<p>　　$(‘h1’).fadeIn(300); // 300毫秒内淡入</p>
-<p>　　$(‘h1’).fadeOut(‘slow’); // 缓慢地淡出</p>
-<p>在特效结束后，可以指定执行某个函数。</p>
-<p>　　$(‘p’).fadeOut(300, function() { $(this).remove(); });</p>
-<p>更复杂的特效，可以用.animate()自定义。</p>
-<p>　　$(‘div’).animate(</p>
-<p>　　　　{</p>
-<p>　　　　　　left : “+=50”, //不断右移</p>
-<p>　　　　　　opacity : 0.25 //指定透明度</p>
-<p>　　　　},</p>
-<p>　　　　300, // 持续时间</p>
-<p>　　　　function() { alert(‘done!’); } //回调函数</p>
-<p>　　);</p>
-<p>.stop()和.delay()用来停止或延缓特效的执行。</p>
-<p>$.fx.off如果设置为true，则关闭所有网页特效</p>
-
-          
+          一、选择网页元素
+jQuery的基本设计思想和主要用法，就是“选择某个网页元素，然后对其进行某种操作”。这是它区别于其他Javascript库的根本特点。
+使用jQuery的第一步，往往就是将一个选择表达式，放进构造函数jQuery()（简写为$），然后得到被选中的元素。
+选择表达式可以是CSS选择
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2016/02/07/jquery基础/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
@@ -2044,188 +1707,17 @@
       
         
           
-            <p><a href="http://en.wikipedia.org/wiki/XMLHttpRequest" target="_blank" rel="noopener">XMLHttpRequest</a>是一个浏览器接口，使得Javascript可以进行HTTP(S)通信。</p>
-<p>最早，微软在IE 5引进了这个接口。因为它太有用，其他浏览器也模仿部署了，ajax操作因此得以诞生。</p>
-<p>但是，这个接口一直没有标准化，每家浏览器的实现或多或少有点不同。HTML 5的概念形成后，W3C开始考虑标准化这个接口。2008年2月，就提出了<a href="http://dev.w3.org/2006/webapi/XMLHttpRequest-2/" target="_blank" rel="noopener">XMLHttpRequest Level 2</a> 草案。</p>
-<p>这个XMLHttpRequest的新版本，提出了很多有用的新功能，将大大推动互联网革新。本文就对这个新版本进行详细介绍。</p>
-<p><a href="http://image.beekka.com/blog/201209/bg2012090801.png" target="_blank" rel="noopener"><img src="http://image.beekka.com/blog/201209/bg2012090801.png" alt="img"></a></p>
-<p><strong>一、老版本的XMLHttpRequest对象</strong></p>
-<p>在介绍新版本之前，我们先回顾一下老版本的用法。</p>
-<p>首先，新建一个XMLHttpRequest的实例。</p>
-<blockquote>
-<p>　　var xhr = new XMLHttpRequest();</p>
-</blockquote>
-<p>然后，向远程主机发出一个HTTP请求。</p>
-<blockquote>
-<p>　　xhr.open(‘GET’, ‘example.php’);</p>
-<p>　　xhr.send();</p>
-</blockquote>
-<p>接着，就等待远程主机做出回应。这时需要监控XMLHttpRequest对象的状态变化，指定回调函数。</p>
-<blockquote>
-<p>　　xhr.onreadystatechange = function(){</p>
-<p>　　　　if ( xhr.readyState == 4 &amp;&amp; xhr.status == 200 ) {</p>
-<p>　　　　　　alert( xhr.responseText );</p>
-<p>　　　　} else {</p>
-<p>　　　　　　alert( xhr.statusText );</p>
-<p>　　　　}</p>
-<p>　　};</p>
-</blockquote>
-<p>上面的代码包含了老版本XMLHttpRequest对象的主要属性：</p>
-<blockquote>
-<p>　　* xhr.readyState：XMLHttpRequest对象的状态，等于4表示数据已经接收完毕。</p>
-<p>　　* xhr.status：服务器返回的状态码，等于200表示一切正常。</p>
-<p>　　* xhr.responseText：服务器返回的文本数据</p>
-<p>　　* xhr.responseXML：服务器返回的XML格式的数据</p>
-<p>　　* xhr.statusText：服务器返回的状态文本。</p>
-</blockquote>
-<p><strong>二、老版本的缺点</strong></p>
-<p>老版本的XMLHttpRequest对象有以下几个缺点：</p>
-<blockquote>
-<p>　　* 只支持文本数据的传送，无法用来读取和上传二进制文件。</p>
-<p>　　* 传送和接收数据时，没有进度信息，只能提示有没有完成。</p>
-<p>　　* 受到<a href="http://www.w3.org/Security/wiki/Same_Origin_Policy" target="_blank" rel="noopener">“同域限制”</a>（Same Origin Policy），只能向同一域名的服务器请求数据。</p>
-</blockquote>
-<p><strong>三、新版本的功能</strong></p>
-<p>新版本的XMLHttpRequest对象，针对老版本的缺点，做出了大幅改进。</p>
-<blockquote>
-<p>　　* 可以设置HTTP请求的时限。</p>
-<p>　　* 可以使用FormData对象管理表单数据。</p>
-<p>　　* 可以上传文件。</p>
-<p>　　* 可以请求不同域名下的数据（跨域请求）。</p>
-<p>　　* 可以获取服务器端的二进制数据。</p>
-<p>　　* 可以获得数据传输的进度信息。</p>
-</blockquote>
-<p>下面，我就一一介绍这些新功能。</p>
-<p><strong>四、HTTP请求的时限</strong></p>
-<p>有时，ajax操作很耗时，而且无法预知要花多少时间。如果网速很慢，用户可能要等很久。</p>
-<p>新版本的XMLHttpRequest对象，增加了timeout属性，可以设置HTTP请求的时限。</p>
-<blockquote>
-<p>　　xhr.timeout = 3000;</p>
-</blockquote>
-<p>上面的语句，将最长等待时间设为3000毫秒。过了这个时限，就自动停止HTTP请求。与之配套的还有一个timeout事件，用来指定回调函数。</p>
-<blockquote>
-<p>　　xhr.ontimeout = function(event){</p>
-<p>　　　　alert(‘请求超时！’);</p>
-<p>　　}</p>
-</blockquote>
-<p>目前，Opera、Firefox和IE 10支持该属性，IE 8和IE 9的这个属性属于XDomainRequest对象，而Chrome和Safari还不支持。</p>
-<p><strong>五、FormData对象</strong></p>
-<p>ajax操作往往用来传递表单数据。为了方便表单处理，HTML 5新增了一个FormData对象，可以模拟表单。</p>
-<p>首先，新建一个FormData对象。</p>
-<blockquote>
-<p>　　var formData = new FormData();</p>
-</blockquote>
-<p>然后，为它添加表单项。</p>
-<blockquote>
-<p>　　formData.append(‘username’, ‘张三’);</p>
-<p>　　formData.append(‘id’, 123456);</p>
-</blockquote>
-<p>最后，直接传送这个FormData对象。这与提交网页表单的效果，完全一样。</p>
-<blockquote>
-<p>　　xhr.send(formData);</p>
-</blockquote>
-<p>FormData对象也可以用来获取网页表单的值。</p>
-<blockquote>
-<p>　　var form = document.getElementById(‘myform’);</p>
-<p>　　var formData = new FormData(form);</p>
-<p>　　formData.append(‘secret’, ‘123456’); // 添加一个表单项</p>
-<p>　　xhr.open(‘POST’, form.action);</p>
-<p>　　xhr.send(formData);</p>
-</blockquote>
-<p><strong>六、上传文件</strong></p>
-<p>新版XMLHttpRequest对象，不仅可以发送文本信息，还可以上传文件。</p>
-<p>假定files是一个”选择文件”的表单元素（input[type=”file”]），我们将它装入FormData对象。</p>
-<blockquote>
-<p>　　var formData = new FormData();</p>
-<p>　　for (var i = 0; i &lt; files.length;i++) {</p>
-<p>　　　　formData.append(‘files[]’, files[i]);</p>
-<p>　　}</p>
-</blockquote>
-<p>然后，发送这个FormData对象。</p>
-<blockquote>
-<p>　　xhr.send(formData);</p>
-</blockquote>
-<p><strong>七、跨域资源共享（CORS）</strong></p>
-<p>新版本的XMLHttpRequest对象，可以向不同域名的服务器发出HTTP请求。这叫做<a href="http://en.wikipedia.org/wiki/Cross-Origin_Resource_Sharing" target="_blank" rel="noopener">“跨域资源共享”</a>（Cross-origin resource sharing，简称CORS）。</p>
-<p>使用”跨域资源共享”的前提，是浏览器必须支持这个功能，而且服务器端必须同意这种”跨域”。如果能够满足上面的条件，则代码的写法与不跨域的请求完全一样。</p>
-<blockquote>
-<p>　　xhr.open(‘GET’, ‘<a href="http://other.server/and/path/to/script" target="_blank" rel="noopener">http://other.server/and/path/to/script</a>‘);</p>
-</blockquote>
-<p>目前，除了IE 8和IE 9，主流浏览器都支持CORS，IE 10也将支持这个功能。服务器端的设置，请参考<a href="https://developer.mozilla.org/en-US/docs/Server-Side_Access_Control" target="_blank" rel="noopener">《Server-Side Access Control》</a>。</p>
-<p><strong>八、接收二进制数据（方法A：改写MIMEType）</strong></p>
-<p>老版本的XMLHttpRequest对象，只能从服务器取回文本数据（否则它的名字就不用XML起首了），新版则可以取回二进制数据。</p>
-<p>这里又分成两种做法。较老的做法是改写数据的MIMEType，将服务器返回的二进制数据伪装成文本数据，并且告诉浏览器这是用户自定义的字符集。</p>
-<blockquote>
-<p>　　xhr.overrideMimeType(“text/plain; charset=x-user-defined”);</p>
-</blockquote>
-<p>然后，用responseText属性接收服务器返回的二进制数据。</p>
-<blockquote>
-<p>　　var binStr = xhr.responseText;</p>
-</blockquote>
-<p>由于这时，浏览器把它当做文本数据，所以还必须再一个个字节地还原成二进制数据。</p>
-<blockquote>
-<p>　　for (var i = 0, len = binStr.length; i &lt; len; ++i) {</p>
-<p>　　　　var c = binStr.charCodeAt(i);</p>
-<p>　　　　var byte = c &amp; 0xff;</p>
-<p>　　}</p>
-</blockquote>
-<p>最后一行的位运算”c &amp; 0xff”，表示在每个字符的两个字节之中，只保留后一个字节，将前一个字节扔掉。原因是浏览器解读字符的时候，会把字符自动<a href="http://web.archive.org/web/20080821092906/http://mgran.blogspot.com/2006/08/downloading-binary-streams-with.html" target="_blank" rel="noopener">解读</a>成Unicode的0xF700-0xF7ff区段。</p>
-<p><strong>八、接收二进制数据（方法B：responseType属性）</strong></p>
-<p>从服务器取回二进制数据，较新的方法是使用新增的responseType属性。如果服务器返回文本数据，这个属性的值是”TEXT”，这是默认值。较新的浏览器还支持其他值，也就是说，可以接收其他格式的数据。</p>
-<p>你可以把responseType设为blob，表示服务器传回的是二进制对象。</p>
-<blockquote>
-<p>　　var xhr = new XMLHttpRequest();</p>
-<p>　　xhr.open(‘GET’, ‘/path/to/image.png’);</p>
-<p>　　xhr.responseType = ‘blob’;</p>
-</blockquote>
-<p>接收数据的时候，用浏览器自带的Blob对象即可。</p>
-<blockquote>
-<p>　　var blob = new Blob([xhr.response], {type: ‘image/png’});</p>
-</blockquote>
-<p>注意，是读取xhr.response，而不是xhr.responseText。</p>
-<p>你还可以将responseType设为arraybuffer，把二进制数据装在一个数组里。</p>
-<blockquote>
-<p>　　var xhr = new XMLHttpRequest();</p>
-<p>　　xhr.open(‘GET’, ‘/path/to/image.png’);</p>
-<p>　　xhr.responseType = “arraybuffer”;</p>
-</blockquote>
-<p>接收数据的时候，需要遍历这个数组。</p>
-<blockquote>
-<p>　　var arrayBuffer = xhr.response;</p>
-<p>　　if (arrayBuffer) {</p>
-<p>　　　　var byteArray = new Uint8Array(arrayBuffer);</p>
-<p>　　　　for (var i = 0; i &lt; byteArray.byteLength; i++) {</p>
-<p>　　　　　　// do something</p>
-<p>　　　　}<br>　　}</p>
-</blockquote>
-<p>更详细的讨论，请看<a href="https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest/Sending_and_Receiving_Binary_Data" target="_blank" rel="noopener">Sending and Receiving Binary Data</a>。</p>
-<p><strong>九、进度信息</strong></p>
-<p>新版本的XMLHttpRequest对象，传送数据的时候，有一个progress事件，用来返回进度信息。</p>
-<p>它分成上传和下载两种情况。下载的progress事件属于XMLHttpRequest对象，上传的progress事件属于XMLHttpRequest.upload对象。</p>
-<p>我们先定义progress事件的回调函数。</p>
-<blockquote>
-<p>　　xhr.onprogress = updateProgress;</p>
-<p>　　xhr.upload.onprogress = updateProgress;</p>
-</blockquote>
-<p>然后，在回调函数里面，使用这个事件的一些属性。</p>
-<blockquote>
-<p>　　function updateProgress(event) {</p>
-<p>　　　　if (event.lengthComputable) {</p>
-<p>　　　　　　var percentComplete = event.loaded / event.total;</p>
-<p>　　　　}</p>
-<p>　　}</p>
-</blockquote>
-<p>上面的代码中，event.total是需要传输的总字节，event.loaded是已经传输的字节。如果event.lengthComputable不为真，则event.total等于0。</p>
-<p>与progress事件相关的，还有其他五个事件，可以分别指定回调函数：</p>
-<blockquote>
-<p>　　* load事件：传输成功完成。</p>
-<p>　　* abort事件：传输被用户取消。</p>
-<p>　　* error事件：传输中出现错误。</p>
-<p>　　* loadstart事件：传输开始。</p>
-<p>　　* loadEnd事件：传输结束，但是不知道成功还是失败。</p>
-</blockquote>
-
-          
+          XMLHttpRequest是一个浏览器接口，使得Javascript可以进行HTTP(S)通信。
+最早，微软在IE 5引进了这个接口。因为它太有用，其他浏览器也模仿部署了，ajax操作因此得以诞生。
+但是，这个接口一直没有标准化，每家浏览器的实现或多或少有点不同。HTML 5的概念形成后，W3C开
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2016/01/20/XMLHttpRequest 2.0/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
@@ -2311,7 +1803,7 @@
             
               <div class="site-state-item site-state-posts">
               
-                <a href="/archives/">
+                <a href="/archives">
               
                   <span class="site-state-item-count">42</span>
                   <span class="site-state-item-name">日志</span>
@@ -2323,10 +1815,10 @@
               
               
               <div class="site-state-item site-state-categories">
-                
+                <a href="/categories/index.html">
                   <span class="site-state-item-count">6</span>
                   <span class="site-state-item-name">分类</span>
-                
+                </a>
               </div>
             
 
@@ -2334,10 +1826,10 @@
               
               
               <div class="site-state-item site-state-tags">
-                
+                <a href="/tags/index.html">
                   <span class="site-state-item-count">6</span>
                   <span class="site-state-item-name">标签</span>
-                
+                </a>
               </div>
             
 
