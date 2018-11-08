@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="JavaScript," />
+  <meta name="keywords" content="PHP," />
 
 
 
@@ -79,18 +79,18 @@
 
 
 
-<meta name="description" content="闭包是js里的一个难点,很多高级的功能都需要闭包来实现. 下面是我的学习期间的笔记,和个人对闭包的一些理解 说到闭包首先要提到函数的作用域 一、变量的作用域 要理解闭包，首先必须理解Javascript特殊的变量作用域。 变量的作用域无非就是两种：全局变量和局部变量。 Javascript语言的特殊之处，就在于函数内部可以直接读取全局变量。  　　var n=999; 　　function f1">
-<meta name="keywords" content="JavaScript">
+<meta name="description" content="单例模式   通过提供自身共享实例的访问，单例设计模式用于限制特定对象只能被创建一次。   使用场景   例如数据库实例，一般都会走单例模式。 单例模式可以减少类的实例化   代码：来源InitPHP框架，先检测类有没被实例化，实例化了就使用已经存放在静态变量中的对象实例，没有则实例化并将对象保存起来。  12345678910111213141516171819202122&amp;lt;?php	/">
+<meta name="keywords" content="PHP">
 <meta property="og:type" content="article">
-<meta property="og:title" content="javascript 闭包(Closure)">
-<meta property="og:url" content="http://gityuanye.cn/2015/10/16/javascript 闭包(Closure)/index.html">
+<meta property="og:title" content="PHP设计模式系列 - 单例">
+<meta property="og:url" content="http://gityuanye.cn/2017/10/15/单例设计模式/index.html">
 <meta property="og:site_name" content="Lao Yuan&#39;s Personal Website">
-<meta property="og:description" content="闭包是js里的一个难点,很多高级的功能都需要闭包来实现. 下面是我的学习期间的笔记,和个人对闭包的一些理解 说到闭包首先要提到函数的作用域 一、变量的作用域 要理解闭包，首先必须理解Javascript特殊的变量作用域。 变量的作用域无非就是两种：全局变量和局部变量。 Javascript语言的特殊之处，就在于函数内部可以直接读取全局变量。  　　var n=999; 　　function f1">
+<meta property="og:description" content="单例模式   通过提供自身共享实例的访问，单例设计模式用于限制特定对象只能被创建一次。   使用场景   例如数据库实例，一般都会走单例模式。 单例模式可以减少类的实例化   代码：来源InitPHP框架，先检测类有没被实例化，实例化了就使用已经存放在静态变量中的对象实例，没有则实例化并将对象保存起来。  12345678910111213141516171819202122&amp;lt;?php	/">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-06-12T06:42:36.887Z">
+<meta property="og:updated_time" content="2018-11-08T08:50:01.376Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="javascript 闭包(Closure)">
-<meta name="twitter:description" content="闭包是js里的一个难点,很多高级的功能都需要闭包来实现. 下面是我的学习期间的笔记,和个人对闭包的一些理解 说到闭包首先要提到函数的作用域 一、变量的作用域 要理解闭包，首先必须理解Javascript特殊的变量作用域。 变量的作用域无非就是两种：全局变量和局部变量。 Javascript语言的特殊之处，就在于函数内部可以直接读取全局变量。  　　var n=999; 　　function f1">
+<meta name="twitter:title" content="PHP设计模式系列 - 单例">
+<meta name="twitter:description" content="单例模式   通过提供自身共享实例的访问，单例设计模式用于限制特定对象只能被创建一次。   使用场景   例如数据库实例，一般都会走单例模式。 单例模式可以减少类的实例化   代码：来源InitPHP框架，先检测类有没被实例化，实例化了就使用已经存放在静态变量中的对象实例，没有则实例化并将对象保存起来。  12345678910111213141516171819202122&amp;lt;?php	/">
 
 
 
@@ -120,13 +120,13 @@
 
 
 
-  <link rel="canonical" href="http://gityuanye.cn/2015/10/16/javascript 闭包(Closure)/"/>
+  <link rel="canonical" href="http://gityuanye.cn/2017/10/15/单例设计模式/"/>
 
 
 
 
 
-  <title>javascript 闭包(Closure) | Lao Yuan's Personal Website</title>
+  <title>PHP设计模式系列 - 单例 | Lao Yuan's Personal Website</title>
   
 
 
@@ -263,7 +263,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://gityuanye.cn/2015/10/16/javascript 闭包(Closure)/">
+    <link itemprop="mainEntityOfPage" href="http://gityuanye.cn/2017/10/15/单例设计模式/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Lao Yuan">
@@ -280,7 +280,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">javascript 闭包(Closure)</h1>
+          <h1 class="post-title" itemprop="name headline">PHP设计模式系列 - 单例</h1>
         
 
         <div class="post-meta">
@@ -292,8 +292,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2015-10-16T20:05:00+08:00">
-                2015-10-16
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-15T20:10:33+08:00">
+                2017-10-15
               </time>
             
 
@@ -315,8 +315,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/JavaScript/" itemprop="url" rel="index">
-                    <span itemprop="name">JavaScript</span>
+                  <a href="/categories/PHP/" itemprop="url" rel="index">
+                    <span itemprop="name">PHP</span>
                   </a>
                 </span>
 
@@ -352,96 +352,23 @@
       
 
       
-        <p>闭包是js里的一个难点,很多高级的功能都需要闭包来实现.</p>
-<p>下面是我的学习期间的笔记,和个人对闭包的一些理解</p>
-<p>说到闭包首先要提到函数的作用域</p>
-<p><strong>一、变量的作用域</strong></p>
-<p>要理解闭包，首先必须理解Javascript特殊的变量作用域。</p>
-<p>变量的作用域无非就是两种：全局变量和局部变量。</p>
-<p>Javascript语言的特殊之处，就在于函数内部可以直接读取全局变量。</p>
+        <ul>
+<li>单例模式</li>
+</ul>
 <blockquote>
-<p>　　var n=999;</p>
-<p>　　function f1 () {<br>　　　　alert(n);<br>　　}</p>
-<p>　　f1(); // 999</p>
+<p>通过提供自身共享实例的访问，单例设计模式用于限制特定对象只能被创建一次。</p>
 </blockquote>
-<p>另一方面，在函数外部自然无法读取函数内的局部变量。</p>
-<blockquote>
-<p>　　function f1(){<br>　　　　var n=999;<br>　　}</p>
-<p>　　alert(n); // error</p>
-</blockquote>
-<p>这里有一个地方需要注意，函数内部声明变量的时候，一定要使用var命令。如果不用的话，你实际上声明了一个全局变量！</p>
-<blockquote>
-<p>　　function f1(){<br>　　　　n=999;<br>　　}</p>
-<p>　　f1();</p>
-<p>　　alert(n); // 999</p>
-</blockquote>
-<p><strong>二、如何从外部读取局部变量？</strong></p>
-<p>出于种种原因，我们有时候需要得到函数内的局部变量。但是，前面已经说过了，正常情况下，这是办不到的，只有通过变通方法才能实现。</p>
-<p>那就是在函数的内部，再定义一个函数。</p>
-<blockquote>
-<p>　　function f1(){</p>
-<p>　　　　var n=999;</p>
-<p>　　　　function f2(){<br>　　　　　　alert(n); // 999<br>　　　　}</p>
-<p>　　}</p>
-</blockquote>
-<p>在上面的代码中，函数f2就被包括在函数f1内部，这时f1内部的所有局部变量，对f2都是可见的。但是反过来就不行，f2内部的局部变量，对f1就是不可见的。这就是Javascript语言特有的”链式作用域”结构（chain scope），子对象会一级一级地向上寻找所有父对象的变量。所以，父对象的所有变量，对子对象都是可见的，反之则不成立。</p>
-<p>既然f2可以读取f1中的局部变量，那么只要把f2作为返回值，我们不就可以在f1外部读取它的内部变量了吗！</p>
-<blockquote>
-<p>　　function f1(){</p>
-<p>　　　　var n=999;</p>
-<p>　　　　function f2(){<br>　　　　　　alert(n);<br>　　　　}</p>
-<p>　　　　return f2;</p>
-<p>　　}</p>
-<p>　　var result=f1();</p>
-<p>　　result(); // 999</p>
-</blockquote>
-<p><strong>三、闭包的概念</strong></p>
-<p>上一节代码中的f2函数，就是闭包。</p>
-<p>各种专业文献上的”闭包”（closure）定义非常抽象，很难看懂。我的理解是，闭包就是能够读取其他函数内部变量的函数。</p>
-<p>由于在Javascript语言中，只有函数内部的子函数才能读取局部变量，因此可以把闭包简单理解成”定义在一个函数内部的函数”。</p>
-<p>所以，在本质上，闭包就是将函数内部和函数外部连接起来的一座桥梁。</p>
-<p><strong>四、闭包的用途</strong></p>
-<p>闭包可以用在许多地方。它的最大用处有两个，一个是前面提到的可以读取函数内部的变量，另一个就是让这些变量的值始终保持在内存中。</p>
-<p>怎么来理解这句话呢？请看下面的代码。</p>
-<blockquote>
-<p>　　function f1(){</p>
-<p>　　　　var n=999;</p>
-<p>　　　　nAdd=function(){n+=1}</p>
-<p>　　　　function f2(){<br>　　　　　　alert(n);<br>　　　　}</p>
-<p>　　　　return f2;</p>
-<p>　　}</p>
-<p>　　var result=f1();</p>
-<p>　　result(); // 999</p>
-<p>　　nAdd();</p>
-<p>　　result(); // 1000</p>
-</blockquote>
-<p>在这段代码中，result实际上就是闭包f2函数。它一共运行了两次，第一次的值是999，第二次的值是1000。这证明了，函数f1中的局部变量n一直保存在内存中，并没有在f1调用后被自动清除。</p>
-<p>为什么会这样呢？原因就在于f1是f2的父函数，而f2被赋给了一个全局变量，这导致f2始终在内存中，而f2的存在依赖于f1，因此f1也始终在内存中，不会在调用结束后，被垃圾回收机制（garbage collection）回收。</p>
-<p>这段代码中另一个值得注意的地方，就是”nAdd=function(){n+=1}”这一行，首先在nAdd前面没有使用var关键字，因此nAdd是一个全局变量，而不是局部变量。其次，nAdd的值是一个匿名函数（anonymous function），而这个匿名函数本身也是一个闭包，所以nAdd相当于是一个setter，可以在函数外部对函数内部的局部变量进行操作。</p>
-<p><strong>五、使用闭包的注意点</strong></p>
-<p>1）由于闭包会使得函数中的变量都被保存在内存中，内存消耗很大，所以不能滥用闭包，否则会造成网页的性能问题，在IE中可能导致内存泄露。解决方法是，在退出函数之前，将不使用的局部变量全部删除。</p>
-<p>2）闭包会在父函数外部，改变父函数内部变量的值。所以，如果你把父函数当作对象（object）使用，把闭包当作它的公用方法（Public Method），把内部变量当作它的私有属性（private value），这时一定要小心，不要随便改变父函数内部变量的值。</p>
-<p><strong>六、思考题</strong></p>
-<p>如果你能理解下面两段代码的运行结果，应该就算理解闭包的运行机制了。</p>
-<p>代码片段一。</p>
-<blockquote>
-<p>　　var name = “The Window”;</p>
-<p>　　var object = {<br>　　　　name : “My Object”,</p>
-<p>　　　　getNameFunc : function(){<br>　　　　　　return function(){<br>　　　　　　　　return this.name;<br>　　　　　　};</p>
-<p>　　　　}</p>
-<p>　　};</p>
-<p>　　alert(object.getNameFunc()());</p>
-</blockquote>
-<p>代码片段二。</p>
-<blockquote>
-<p>　　var name = “The Window”;</p>
-<p>　　var object = {<br>　　　　name : “My Object”,</p>
-<p>　　　　getNameFunc : function(){<br>　　　　　　var that = this;<br>　　　　　　return function(){<br>　　　　　　　　return that.name;<br>　　　　　　};</p>
-<p>　　　　}</p>
-<p>　　};</p>
-<p>　　alert(object.getNameFunc()());</p>
-</blockquote>
-
+<ul>
+<li>使用场景</li>
+</ul>
+<ol>
+<li>例如数据库实例，一般都会走单例模式。</li>
+<li>单例模式可以减少类的实例化</li>
+</ol>
+<ul>
+<li>代码：来源InitPHP框架，先检测类有没被实例化，实例化了就使用已经存放在静态变量中的对象实例，没有则实例化并将对象保存起来。</li>
+</ul>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 框架核心加载-框架的所有类都需要通过该函数出去</span></span><br><span class="line"><span class="comment">	 * 1. 单例模式</span></span><br><span class="line"><span class="comment">	 * 2. 可以加载-Controller，Service，View，Dao，Util，Library中的类文件</span></span><br><span class="line"><span class="comment">	 * 3. 框架加载核心函数</span></span><br><span class="line"><span class="comment">	 * 使用方法：$this-&gt;load($class_name, $type)</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@param</span> string $class_name 类名称</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@param</span> string $type 类别</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">load</span><span class="params">($class_name, $type)</span> </span>&#123;</span><br><span class="line">		$class_path = <span class="keyword">$this</span>-&gt;get_class_path($class_name, $type);<span class="comment">//classPath</span></span><br><span class="line">		$class_name = <span class="keyword">$this</span>-&gt;get_class_name($class_name);<span class="comment">//className</span></span><br><span class="line">		<span class="keyword">if</span> (!file_exists($class_path)) InitPHP::initError(<span class="string">'file '</span>. $class_name . <span class="string">'.php is not exist!'</span>);</span><br><span class="line">		<span class="keyword">if</span> (!<span class="keyword">isset</span>(<span class="keyword">self</span>::$instance[<span class="string">'initphp'</span>][$class_name])) &#123;</span><br><span class="line">			<span class="keyword">require_once</span>($class_path);</span><br><span class="line">			<span class="keyword">if</span> (!class_exists($class_name)) InitPHP::initError(<span class="string">'class'</span> . $class_name . <span class="string">' is not exist!'</span>);</span><br><span class="line">			$init_class = <span class="keyword">new</span> $class_name;</span><br><span class="line">			<span class="keyword">self</span>::$instance[<span class="string">'initphp'</span>][$class_name] = $init_class;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">self</span>::$instance[<span class="string">'initphp'</span>][$class_name];</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure>
       
     </div>
     
@@ -458,7 +385,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/JavaScript/" rel="tag"><i class="fa fa-tag"></i> JavaScript</a>
+            <a href="/tags/PHP/" rel="tag"><i class="fa fa-tag"></i> PHP</a>
           
         </div>
       
@@ -471,8 +398,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2015/10/07/merge引擎/" rel="next" title="merge引擎">
-                <i class="fa fa-chevron-left"></i> merge引擎
+              <a href="/2017/10/03/移动端适配/" rel="next" title="移动端适配">
+                <i class="fa fa-chevron-left"></i> 移动端适配
               </a>
             
           </div>
@@ -481,8 +408,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2015/11/06/http协议小记/" rel="prev" title="http协议小记">
-                http协议小记 <i class="fa fa-chevron-right"></i>
+              <a href="/2017/11/15/避免if语句的深层次嵌套/" rel="prev" title="避免if语句的深层次嵌套">
+                避免if语句的深层次嵌套 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
