@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="PHP," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="​    汉字一定注意是gbk还是utf8编码 UTF-8匹配:在javascript中，要判定字符串是中文是很简朴的。比如：var str = “php编程”;if (/^[\u4e00-\u9fa5]+$/.test(str)) {alert(“该字符串全部是中文”);} else{alert(“该字符串不全部是中文”);}php中，是用 … 　　UTF-8匹配: 　　在javascript中">
+<meta name="keywords" content="PHP">
+<meta property="og:type" content="article">
+<meta property="og:title" content="PHP 正则判断中文">
+<meta property="og:url" content="http://gityuanye.cn/2018/03/19/PHP判断中文问题/index.html">
+<meta property="og:site_name" content="Lao Yuan&#39;s Personal Website">
+<meta property="og:description" content="​    汉字一定注意是gbk还是utf8编码 UTF-8匹配:在javascript中，要判定字符串是中文是很简朴的。比如：var str = “php编程”;if (/^[\u4e00-\u9fa5]+$/.test(str)) {alert(“该字符串全部是中文”);} else{alert(“该字符串不全部是中文”);}php中，是用 … 　　UTF-8匹配: 　　在javascript中">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-11-14T03:50:47.298Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="PHP 正则判断中文">
+<meta name="twitter:description" content="​    汉字一定注意是gbk还是utf8编码 UTF-8匹配:在javascript中，要判定字符串是中文是很简朴的。比如：var str = “php编程”;if (/^[\u4e00-\u9fa5]+$/.test(str)) {alert(“该字符串全部是中文”);} else{alert(“该字符串不全部是中文”);}php中，是用 … 　　UTF-8匹配: 　　在javascript中">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://gityuanye.cn/2018/03/19/PHP判断中文问题/"/>
+
+
+
+
+
+  <title>PHP 正则判断中文 | Lao Yuan's Personal Website</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Lao Yuan's Personal Website</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">LaoYuan</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://gityuanye.cn/2018/03/19/PHP判断中文问题/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Lao Yuan">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/upload/image/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lao Yuan's Personal Website">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">PHP 正则判断中文</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-03-19T10:01:00+08:00">
+                2018-03-19
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/PHP/" itemprop="url" rel="index">
+                    <span itemprop="name">PHP</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>​    汉字一定注意是gbk还是utf8编码</p>
+<p>UTF-8匹配:在javascript中，要判定字符串是中文是很简朴的。比如：var str = “php编程”;if (/^[\u4e00-\u9fa5]+$/.test(str)) {alert(“该字符串全部是中文”);} else{alert(“该字符串不全部是中文”);}php中，是用 …</p>
+<p>　　UTF-8匹配:</p>
+<p>　　在javascript中，要判定字符串是中文是很简朴的。比如：</p>
+<p>　　var str = “php编程”;</p>
+<p>　　if (/^[\u4e00-\u9fa5]+$/.test(str)) {</p>
+<p>　　alert(“该字符串全部是中文”);</p>
+<p>　　}</p>
+<p>　　else{</p>
+<p>　　alert(“该字符串不全部是中文”);</p>
+<p>　　}</p>
+<p>　　php中，是用\x表示十六进制数据的。于是，变换成如下的代码：</p>
+<p>　　$str = “php编程”;</p>
+<p>　　if (preg_match(“/^[\x4e00-\x9fa5]+$/“$str)) {</p>
+<p>　　print(“该字符串全部是中文”);</p>
+<p>　　} else {</p>
+<p>　　print(“该字符串不全部是中文”);</p>
+<p>　　}</p>
+<p>　　貌似不报错了，判定的结果也准确，不过把$str换成“编程”两字，结果却还是显示“该字符串不全部是中文”，看来这样的判定还是不够准确。</p>
+<p>　　网上只能找到匹配全角字符的正则: ^[\x80-\xff]*^/</p>
+<p>　　[\u4e00-\u9fa5]可以匹配中文但是PHP又不支持</p>
+<p>　　可能还跟编码有关系，因此需要了解一下模式修正符的相关知识.</p>
+<p>　　在一篇《模式修正符》的文章中了解到：</p>
+<p>　　u (PCRE_UTF8)</p>
+<p>　　此修正符启用了一个 PCRE 中与 Perl 不兼容的额外功能。模式字符串被当成 UTF-8。本修正符在 Unix 下自 PHP 4.1.0 起可用，在 win32 下自 PHP 4.2.3 起可用。</p>
+<p>　　例子:</p>
+<p>　　preg_match(‘/[\x{2460}-\x{2468}]/u’ $str); 匹配 内码汉字</p>
+<p>　　按照他提供的方式进行测试，代码如下：</p>
+<p>　　$str = “php编程”;</p>
+<p>　　if (preg_match(“/^[\x{2460}-\x{2468}]+$/u”$str)) {</p>
+<p>　　print(“该字符串全部是中文”);</p>
+<p>　　} else {</p>
+<p>　　print(“该字符串不全部是中文”);</p>
+<p>　　}</p>
+<p>　　发现这次依然对是否为中文判定失常。</p>
+<p>　　不过，既然\x表示的十六进制数据，为什么和js里边提供的范围\x4e00-\x9fa5不一样呢?于是我就换成了下边的代码发现真的准确了：</p>
+<p>　　$str = “php编程”;</p>
+<p>　　if (preg_match(“/^[\x{4e00}-\x{9fa5}]+$/u”$str)) {</p>
+<p>　　print(“该字符串全部是中文”);</p>
+<p>　　} else {</p>
+<p>　　print(“该字符串不全部是中文”);</p>
+<p>　　}</p>
+<p>　　知道了php中utf-8编码下用正则表达式匹配汉字的最终准确表达式——/^[\x{4e00}-\x{9fa5}]+$/u，</p>
+<p>　　参考以上文章写了如下一段测试代码(复制以下代码保存成.php文件)</p>
+<p>　　输入字符(数字字母汉字下划线):</p>
+<p>　　GBK:</p>
+<p>　　preg_match(“/^[“.chr(0xa1).”-“.chr(0xff).”A-Za-z0-9_]+$/“$str); //GB2312汉字字母数字下划线正则表达式</p>
+<p>本文章总结了php中利用正则表达式来匹配中文的一些实例函数，有需要的朋友可参考参考。</p>
+<p>我们先要明白<br>中文双字节字符编码范围</p>
+<p>\1. GBK (GB2312/GB18030)<br>x00-xff GBK双字节编码范围<br>x20-x7f ASCII<br>xa1-xff 中文 gb2312<br>x80-xff 中文 gbk</p>
+<p>\2. UTF-8 (Unicode)</p>
+<p>u4e00-u9fa5 (中文)<br>x3130-x318F (韩文<br>xAC00-xD7A3 (韩文)<br>u0800-u4e00 (日文)</p>
+<p>获取指定的中文与字符<br>例1</p>
+<table>
+<thead>
+<tr>
+<th>代码如下</th>
+<th>复制代码</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>&lt;?php $str = ‘正则如何匹配中文字在某中文字符串中？’; preg_match(“/中/“,$str,$regs); print_r($regs); ?&gt;</td>
+</tr>
+</tbody>
+</table>
+<p>输出<br>Array<br>(<br>    [0] =&gt; 中<br>)</p>
+<p>例2</p>
+<table>
+<thead>
+<tr>
+<th>代码如下</th>
+<th>复制代码</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>&lt;?php $str = ‘这里是中文 this is English’; //把中文变成红色 echo preg_replace(“/([x80-xff].)/“,”<font color="red">1</font>“,$str); //把非中文变成红色 echo preg_replace(“/([x20-x7f])/“,”<font color="red">1</font>“,$str); ?&gt;</td>
+</tr>
+</tbody>
+</table>
+<p>签里面有中文、英文、数字等混排，则需要对汉字进行特殊处理，由于PCRE不支持U P L之类的perl字符串处理转义，使用16进制或者Unicode进行处理，范例如下：</p>
+<table>
+<thead>
+<tr>
+<th>代码如下</th>
+<th>复制代码</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>$str = “之二宽阔的甘家口东#标签1#标签2 #标签3。#标签4,都发$1234 ￥xc,cvm , ￥12,dflksjf如何#标签5.x #tag6.cvxcv“”; preg_match_all(‘/#([a-zA-Z0-9x7f-xff]+)/‘, $str, $mat); print_r($mat);preg_match(“/<a href="d+">x{00a5}x{ffe5}</a>/u”, $str, $mat); print_r($mat);</td>
+</tr>
+</tbody>
+</table>
+<p>最后我明白了php中utf-8编码下用正则表达式匹配汉字的最终正确表达式——/^[x{4e00}-x{9fa5}]+$/u</p>
+<table>
+<thead>
+<tr>
+<th>代码如下</th>
+<th>复制代码</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>$str = “php编程”; if (preg_match(“/^[x{4e00}-x{9fa5}]+$/u”,$str)) { print(“该字符串全部是中文”); } else { print(“该字符串不全部是中文”); }</td>
+</tr>
+</tbody>
+</table>
+<p>实例</p>
+<p>下面这款匹配中文字符串正则表达式是一款利用数组，然后 多次for把全是中文字符串的打印出来。<br>*/</p>
+<table>
+<thead>
+<tr>
+<th>代码如下</th>
+<th>复制代码</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>$str_arr = array( “iameverysorry”, “快乐编程，快乐生活”, “php教程编程”, “1997年香港回归”, “英语学习abc”, “<a href="http://www.php100.com&quot;" target="_blank" rel="noopener">www.php100.com&quot;</a> );$patt_ch = chr(0xa1) . “-“ . chr(0xff);foreach ($str_arr as $str) {     echo “字符串’$str’ 是”;     if (preg_match(“/^[$patt_ch]+$/“, $str))     {         echo “<b>完全中文</b>“;         echo “<br>“;         echo “<br>“;     }     else     {         echo “非完全中文”;         echo “<br>“;         echo “<br>“;     } }</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/PHP/" rel="tag"><i class="fa fa-tag"></i> PHP</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/03/10/redis-list 基础/" rel="next" title="redis-list基本操作">
+                <i class="fa fa-chevron-left"></i> redis-list基本操作
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/03/22/redis 简介/" rel="prev" title="redis 简介">
+                redis 简介 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/upload/image/avatar.jpg"
+                alt="Lao Yuan" />
+            
+              <p class="site-author-name" itemprop="name">Lao Yuan</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">57</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">9</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">9</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/yourname" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Lao Yuan</span>
+
+  
+</div>
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
